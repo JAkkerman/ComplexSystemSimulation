@@ -27,7 +27,7 @@ class Trader():
         # print(self.market.mu, self.market.sigma)
 
         b_i = self.market.p[-1]*np.random.normal(self.market.mu, self.market.sigma)
-        print(f'b_i = {b_i}')
+        # print(f'b_i = {b_i}')
 
         # Generate buy limit price
         a_b = math.trunc(np.random.random()*self.C[-1]/b_i)
@@ -36,13 +36,13 @@ class Trader():
         self.a_b = a_b
 
     def sell(self):
-        print(f'agent {self.id} sells')
+        # print(f'agent {self.id} sells')
 
         a_s = math.trunc(np.random.random()*self.A[-1])
 
         # Generate sell limit price
         s_i = self.market.p[-1]/np.random.normal(self.market.mu, self.market.sigma)
-        print(f's_i = {s_i}')
+        # print(f's_i = {s_i}')
 
         self.s_i = s_i
         self.a_s = a_s
