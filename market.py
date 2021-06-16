@@ -9,7 +9,7 @@ class Market():
         self.T = 20
         self.k = 3.5
         self.mu = 1.01
-        self.hist_vol = 1 # TODO: aanpassen aan historische vol
+        self.hist_vol = 0.1 # TODO: aanpassen aan historische vol
         self.sigma = self.update_sigma()
 
     def update_sigma(self):

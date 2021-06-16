@@ -30,7 +30,7 @@ def run_simulation(N_time, MarketObj):
 if __name__ == '__main__':
 
     N_time = 1
-    N_agents = 100
+    N_agents = 1000
     C = 30000
     A = 300
     p = 100
@@ -38,3 +38,5 @@ if __name__ == '__main__':
     MarketObj = initialise(N_agents, p, A, C)
     run_simulation(N_time, MarketObj)
 
+    print(f'Number of sell orders: {len(MarketObj.sellers)}')
+    print(f'Number of buy orders: {len(MarketObj.buyers)}')
