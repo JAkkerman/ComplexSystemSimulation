@@ -30,7 +30,7 @@ def run_simulation(N_time, MarketObj):
 if __name__ == '__main__':
 
     N_time = 1
-    N_agents = 1000
+    N_agents = 100
     C = 30000
     A = 300
     p = 100
