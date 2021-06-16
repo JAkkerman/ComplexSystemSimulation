@@ -22,6 +22,7 @@ count, bins_count = np.histogram(df, bins=30)
 print(count[10:], bins_count[10:])
 
 pdf = count / sum(count)
+pdf = np.flip(pdf)
 
 cdf = np.cumsum(pdf)
 cdf = np.flip(cdf)
