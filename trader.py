@@ -40,9 +40,7 @@ class Trader():
         # print(f'agent {self.id} sells')
 
         # print('assets agent ', self.id, self.A[-1])
-        k = np.random.random()*self.A[-1]
-        # k = np.random.random()
-        a_s = math.trunc(k)
+        a_s = math.trunc(np.random.random()*self.A[-1])
 
         # print('agent wants to sell', a_s, k)
 
@@ -52,3 +50,11 @@ class Trader():
 
         self.s_i = s_i
         self.a_s = a_s
+
+    def no_trade(self):
+        """
+        Called when no trade is made, in order to keep the asset and cash series
+        consistent
+        """
+        self.A += [self.A[-1]]
+        self.C += [self.C[-1]]

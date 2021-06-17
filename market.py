@@ -6,17 +6,28 @@ import matplotlib.pyplot as plt # TEMP
 
 
 class Market():
-    def __init__(self, p):
+    def __init__(self, p, T=20, k=3.5, mu=1.01, hist_vol=0.1, Pc=0.1):
         self.p = [p]
         self.traders = []
         self.buyers = []
         self.sellers = []
         self.clusters = []
-        self.T = 20
-        self.k = 3.5
-        self.mu = 1.01
-        self.hist_vol = 0.01 # TODO: aanpassen aan historische vol
+        self.T = T
+        self.k = k
+        self.mu = mu
+        self.Pc = Pc
+        self.hist_vol = hist_vol # TODO: aanpassen aan historische vol
         self.sigma = self.update_sigma()
+
+    def update_hist_vol(self):
+        if len(self.p) > self.T:
+            # print('T ', self.T)
+            # print(self.p[:-self.T])
+            # print(np.array(self.p[:-self.T]))
+            returns = np.log(np.roll(np.array(self.p[:-self.T]), shift=-1)/np.array(self.p[:-self.T]))
+            # print(np.std(returns))
+            self.hist_vol = np.std(returns)
+            self.update_sigma()
 
     def update_sigma(self):
         return self.k*self.hist_vol
@@ -78,7 +89,9 @@ class Market():
         # plt.show()
 
         # buy_price_index = np.argmin(abs(np.array(p_buy) - np.mean(intersection[:,1])))
-        buy_price_index = np.argmin(abs(np.array(p_buy) - intersection))
+        buy_price_index = np.where((np.array(p_buy) - intersection) > 0, 
+                                np.array(p_buy), np.inf).argmin()
+        # buy_price_index = np.argmin(abs(np.array(p_buy) - intersection))
         buy_price = np.array(p_buy)[buy_price_index]
         buy_cum_quant = np.array(q_buy)[buy_price_index]
         # print('Buy Price:',buy_price)
@@ -88,7 +101,7 @@ class Market():
         sell_price_index = np.where((np.array(p_sell) - buy_price) < 0, 
                                         np.array(p_sell), -np.inf).argmax()
         # sell_price_index = np.argmin(abs(np.array(p_sell) - buy_price))
-        sell_price = np.array(p_sell)[sell_price_index]
+        # sell_price = np.array(p_sell)[sell_price_index]
         sell_cum_quant = np.array(q_sell)[sell_price_index]
         # print('Sell Price:',sell_price)
         # print('Sell cum. quantity:',sell_cum_quant)
@@ -96,29 +109,31 @@ class Market():
         transaction_q = min(sell_cum_quant, buy_cum_quant)
         self.p += [buy_price]
 
+        return transaction_q, sorted_sell, sorted_buy
+
         # print('q_buy', q_buy)
 
-        if sell_cum_quant > buy_cum_quant:
-            seller_index = np.where((q_sell - buy_cum_quant) > 0, 
-                                    np.array(q_sell), -np.inf).argmax()
+        # if sell_cum_quant > buy_cum_quant:
+        #     seller_index = np.where((q_sell - buy_cum_quant) > 0, 
+        #                             np.array(q_sell), -np.inf).argmax()
 
-            # print('seller index: ', seller_index)
+        #     # print('seller index: ', seller_index)
 
-            # print('Last buyer q: ', sorted_buy[buy_price_index].a_b)
-            # print('Last seller q: ', sorted_sell[seller_index].a_s)
+        #     # print('Last buyer q: ', sorted_buy[buy_price_index].a_b)
+        #     # print('Last seller q: ', sorted_sell[seller_index].a_s)
 
-            return transaction_q, sorted_sell[:seller_index+1], sorted_buy[:buy_price_index+1]
+        #     return transaction_q, sorted_sell[:seller_index+1], sorted_buy[:buy_price_index+1]
 
-        else:
-            buyer_index = np.where((q_buy - sell_cum_quant) < 0, 
-                                    np.array(q_buy), np.inf).argmin()
+        # else:
+        #     buyer_index = np.where((q_buy - sell_cum_quant) < 0, 
+        #                             np.array(q_buy), np.inf).argmin()
 
-            # print('buyer index: ', buyer_index)
+        #     # print('buyer index: ', buyer_index)
 
-            # print('Last buyer q: ', sorted_buy[buyer_index].a_b)
-            # print('Last seller q: ', sorted_sell[sell_price_index].a_s)
+        #     # print('Last buyer q: ', sorted_buy[buyer_index].a_b)
+        #     # print('Last seller q: ', sorted_sell[sell_price_index].a_s)
 
-            return transaction_q, sorted_sell[:sell_price_index+1], sorted_buy[:buyer_index+1]
+        #     return transaction_q, sorted_sell[:sell_price_index+1], sorted_buy[:buyer_index+1]
 
 
     def perform_transactions(self, transaction_q, true_sellers, true_buyers):
@@ -137,6 +152,9 @@ class Market():
                 else:
                     seller.C += [seller.C[-1] + sold_q*self.p[-1]]
                     seller.A += [seller.A[-1] - sold_q]
+                    sold_q -= sold_q
+
+        # print('sold q',  sold_q)
 
         # Perform buy transactions:
         bought_q = transaction_q
@@ -149,16 +167,23 @@ class Market():
                 else:
                     buyer.C += [buyer.C[-1] - bought_q*self.p[-1]]
                     buyer.A += [buyer.A[-1] + bought_q]
+                    bought_q -= bought_q
+
+        # print('bought q ', bought_q)
+
+        for trader in self.traders:
+            if (trader not in true_sellers) and (trader not in true_buyers):
+                trader.no_trade()
 
         self.reset_lists()
 
     def find_intersection(self, combined_buy, combined_sell):
 
-        # print(combined_buy[0])
-        # print(combined_buy[1])
+        # print(combined_sell[0])
+        # print(combined_sell[1])
 
-        buyfit = np.polyfit(combined_buy[1], combined_buy[0], deg=8)
-        sellfit = np.polyfit(combined_sell[1], combined_sell[0], deg=8)
+        buyfit = np.polyfit(combined_buy[1][5:-5], combined_buy[0][5:-5], deg=1)
+        sellfit = np.polyfit(combined_sell[1][5:-5], combined_sell[0][5:-5], deg=1)
 
         buypol = np.poly1d(buyfit)
         sellpol = np.poly1d(sellfit)
@@ -171,11 +196,13 @@ class Market():
 
         # intersection = np.roots(buypol-sellpol)
 
-        # print(q_intersection, p_intersection)
+        # print('q: ', q_intersection, 'p: ', p_intersection)
 
-        # q = np.arange(q_intersection+1000)
-        # plt.plot(q, buypol(q), label='buy')
-        # plt.plot(q, sellpol(q), label='sell')
+        # q = np.arange(q_intersection+4000)
+        # plt.plot(q, buypol(q), label='buy', color='red')
+        # plt.plot(q, sellpol(q), label='sell', color='blue')
+        # plt.scatter(combined_buy[1], combined_buy[0], color='red')
+        # plt.scatter(combined_sell[1], combined_sell[0], color='blue')
         # plt.scatter(q_intersection, p_intersection, color='red')
         # plt.legend()
         # plt.show()

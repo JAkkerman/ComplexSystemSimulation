@@ -94,8 +94,10 @@ def vis_price_series(MarketObj):
 
 def vis_wealth_over_time(MarketObj):
 
+    fig, [ax1, ax2] = plt.subplots(1,2, figsize=(8,4))
     for TraderObj in MarketObj.traders:
-        plt.plot(range(len(TraderObj.A)), TraderObj.A, alpha=0.2)
+        ax1.plot(range(len(TraderObj.C)), TraderObj.C, alpha=0.2)
+    ax2.hist([TraderObj.C[-1] for TraderObj in MarketObj.traders])
 
     plt.show()
     

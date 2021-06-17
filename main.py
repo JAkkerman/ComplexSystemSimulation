@@ -21,8 +21,8 @@ def initialise(N_agents, p, A, C):
 def run_simulation(N_time, MarketObj):
 
     for t in range(N_time):
-
-        print('Iteration ', t)
+        if t%1000==0:
+            print('Iteration ', t)
         for TraderObj in MarketObj.traders:
             TraderObj.trade_decision()
 
@@ -31,6 +31,7 @@ def run_simulation(N_time, MarketObj):
         
         transaction_q, true_sellers, true_buyers = MarketObj.get_equilibrium_p()
         MarketObj.perform_transactions(transaction_q, true_sellers, true_buyers)
+        MarketObj.update_hist_vol()
         # vis.vis_market_cross(MarketObj)
 
     vis.vis_price_series(MarketObj)
@@ -39,7 +40,7 @@ def run_simulation(N_time, MarketObj):
 
 if __name__ == '__main__':
 
-    N_time = 100
+    N_time = 1000
     N_agents = 100
     C = 30000
     A = 300
