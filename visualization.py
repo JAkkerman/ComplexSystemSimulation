@@ -88,6 +88,15 @@ def vis_market_cross(MarketObj):
 def vis_price_series(MarketObj):
 
     plt.plot(range(len(MarketObj.p)), MarketObj.p)
+    plt.xlabel('Time')
+    plt.ylabel('Price')
+    plt.show()
+
+def vis_wealth_over_time(MarketObj):
+
+    for TraderObj in MarketObj.traders:
+        plt.plot(range(len(TraderObj.A)), TraderObj.A, alpha=0.2)
+
     plt.show()
     
 

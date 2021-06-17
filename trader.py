@@ -14,6 +14,7 @@ class Trader():
         self.P_i = 0.5 # buy order probability
 
     def trade_decision(self): # determine whether buyer or seller
+        # print(self.id)
         if np.random.random() > self.P_i:
             self.market.buyers += [self]
             self.buy()
@@ -38,7 +39,12 @@ class Trader():
     def sell(self):
         # print(f'agent {self.id} sells')
 
-        a_s = math.trunc(np.random.random()*self.A[-1])
+        # print('assets agent ', self.id, self.A[-1])
+        k = np.random.random()*self.A[-1]
+        # k = np.random.random()
+        a_s = math.trunc(k)
+
+        # print('agent wants to sell', a_s, k)
 
         # Generate sell limit price
         s_i = self.market.p[-1]/np.random.normal(self.market.mu, self.market.sigma)
