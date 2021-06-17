@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+from data import calc_norm_return, create_cdf, curve_fit_log
 
 def vis_market_cross(MarketObj):
     # buy_p = [buyer.b for buyer in MarketObj.buyers]
@@ -14,12 +16,12 @@ def vis_market_cross(MarketObj):
     q_sell = np.cumsum([i.a_s for i in sorted_sell])
     p_buy = [i.b_i for i in sorted_buy] # sorted list of buy price limits
     q_buy = np.cumsum([i.a_b for i in sorted_buy])
-    
+
     #sets = [[p_sell, q_sell], [p_buy, q_buy]]
     #p_clearing = Intersection(sets)
     #print(f'Intersection: {p_clearing}')
     #pprint(vars(p_clearing))
-    
+
     combined_buy = np.array([p_buy, q_buy])
     combined_sell = np.array([p_sell, q_sell])
     '''
@@ -37,11 +39,11 @@ def vis_market_cross(MarketObj):
     print('Combined sell adjusted:',combined_sell)
     print('Remaining values in sell curve:',len(combined_sell[0]))
     print('Remaining values in buy curve:',len(combined_buy[0]))
-    
+
     min_list_size = min(len(combined_sell[0]), len(combined_buy[0]))
-    
+
     difference_array = np.zeros(min_list_size)
-    
+
     for i in range(min_list_size):
         difference_array[i] = combined_buy[1][min_list_size -1 - i] - combined_sell[1][i]
         if difference_array[i] < 0:
@@ -57,7 +59,7 @@ def vis_market_cross(MarketObj):
     # plt.xlabel('Cumulative Quantity of Stock')
     # plt.legend(loc='best')
     # plt.show()
-    
+
     plt.figure()
     plt.scatter(combined_sell[1], combined_sell[0], label='Sell')
     plt.scatter(combined_buy[1],combined_buy[0], label='Buy')
@@ -65,22 +67,22 @@ def vis_market_cross(MarketObj):
     plt.xlabel('Cumulative Quantity of Stock')
     plt.legend(loc='best')
     plt.show()
-    
+
     import sys
-    
+
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    
+
     # x1 = [1,2,3,4,5,6,7,8]
     # y1 = [20,100,50,120,55,240,50,25]
     # x2 = [3,4,5,6,7,8,9]
     # y2 = [25,200,14,67,88,44,120]
-    
+
     x1=list(combined_buy[1])
     y1=list(combined_buy[0])
     x2=list(combined_sell[1])
     y2=list(combined_sell[0])
-    
+
     ax.plot(x1, y1, color='lightblue',linewidth=3, marker='s')
     ax.plot(x2, y2, color='darkgreen', marker='^')
 
@@ -92,6 +94,21 @@ def vis_price_series(MarketObj):
     plt.ylabel('Price')
     plt.show()
 
+    df = pd.DataFrame(MarketObj.p)
+    df = calc_norm_return(df)
+    cdf, bins_count = create_cdf(df)
+    popt, pcov, real = curve_fit_log(bins_count[1:], cdf)
+
+    plt.plot(bins_count[1:], real, label=f"$\\alpha$ = {round(popt[1],2)}")
+    plt.scatter(bins_count[1:], cdf, color='black')
+    plt.yscale('log')
+    plt.xscale('log')
+    plt.legend()
+    plt.xlabel("Normalized returns")
+    plt.ylabel("Cumulative distribution")
+    plt.show()
+
+
 def vis_wealth_over_time(MarketObj):
 
     fig, [ax1, ax2] = plt.subplots(1,2, figsize=(8,4))
@@ -100,9 +117,3 @@ def vis_wealth_over_time(MarketObj):
     ax2.hist([TraderObj.C[-1] for TraderObj in MarketObj.traders])
 
     plt.show()
-    
-
-    
-    
-    
-    
