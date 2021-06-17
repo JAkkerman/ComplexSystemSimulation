@@ -21,15 +21,20 @@ def initialise(N_agents, p, A, C):
 def run_simulation(N_time, MarketObj):
 
     for t in range(N_time):
+        print('Iteration ', t)
         for TraderObj in MarketObj.traders:
             TraderObj.trade_decision()
-        vis.vis_market_cross(MarketObj)
-        # MarketObj.get_equilibrium_p()
+        
+        transaction_q, true_sellers, true_buyers = MarketObj.get_equilibrium_p()
+        MarketObj.perform_transactions(transaction_q, true_sellers, true_buyers)
+        # vis.vis_market_cross(MarketObj)
 
+    vis.vis_price_series(MarketObj)
+    MarketObj.reset_lists()
 
 if __name__ == '__main__':
 
-    N_time = 1
+    N_time = 10
     N_agents = 100
     C = 30000
     A = 300
