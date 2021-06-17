@@ -97,9 +97,9 @@ def vis_price_series(MarketObj):
     df = pd.DataFrame(MarketObj.p)
     df = calc_norm_return(df)
     cdf, bins_count = create_cdf(df)
-    popt, pcov, real = curve_fit_log(bins_count[1:], cdf)
+    popt, pcov, real = curve_fit_log(bins_count[15:35], cdf[16:36])
 
-    plt.plot(bins_count[1:], real, label=f"$\\alpha$ = {round(popt[1],2)}")
+    plt.plot(bins_count[15:35], real, label=f"$\\alpha$ = {round(popt[1],2)}")
     plt.scatter(bins_count[1:], cdf, color='black')
     plt.yscale('log')
     plt.xscale('log')
