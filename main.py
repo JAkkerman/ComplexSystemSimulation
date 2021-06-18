@@ -4,6 +4,7 @@ import numpy as np
 import market
 import trader
 import visualization as vis
+from tqdm import tqdm
 # from cluster import Cluster
 
 
@@ -22,15 +23,15 @@ def initialise(N_agents, p, A, C, cluster):
 
 def run_simulation(N_time, MarketObj):
 
-    for t in range(N_time):
-        if t%1000==0:
-            print('Iteration ', t)
+    for t in tqdm(range(N_time)):
+        # if t%1000==0:
+            # print('Iteration ', t)
         for TraderObj in MarketObj.traders:
             TraderObj.trade_decision()
 
         # print('yeet sellers', MarketObj.sellers)
         # print('yeet buyers', MarketObj.buyers)
-        
+
         transaction_q, true_sellers, true_buyers = MarketObj.get_equilibrium_p()
         MarketObj.perform_transactions(transaction_q, true_sellers, true_buyers)
         MarketObj.update_hist_vol()
