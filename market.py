@@ -6,8 +6,9 @@ import matplotlib.pyplot as plt # TEMP
 
 
 class Market():
-    def __init__(self, p, T=20, k=3.5, mu=1.01, hist_vol=0.1, Pc=0.1):
+    def __init__(self, p, cluster, T=20, k=3.5, mu=1.01, hist_vol=0.1, Pc=0.1, Pa=0.0002):
         self.p = [p]
+        self.cluster=cluster
         self.traders = []
         self.buyers = []
         self.sellers = []
@@ -16,8 +17,10 @@ class Market():
         self.k = k
         self.mu = mu
         self.Pc = Pc
+        self.Pa = Pa
         self.hist_vol = hist_vol # TODO: aanpassen aan historische vol
         self.sigma = self.update_sigma()
+        self.pairs = []
 
     def update_hist_vol(self):
         if len(self.p) > self.T:
@@ -35,6 +38,30 @@ class Market():
     def reset_lists(self):
         self.buyers = []
         self.sellers = []
+
+    def form_pairs(self):
+        # pass
+        # print(np.array())
+        # print(set([[(i,j) for i in range(len(self.traders))] for j in range(len(self.traders))]))
+        # return np.array([[(i,j) for i in range(len(self.traders)) if i!=j] for j in range(len(self.traders))])
+        # return np.zeros(len(self.traders), len(self.traders))
+        return []
+
+    def form_clusters(self):
+        # chosen_pairs = np.random.choice(self.pairs, replace=False, p=self.Pa)
+        # print(chosen_pairs)
+        to_pair  = np.random.choice(self.traders, size=4, replace=False)
+        pair1 = (to_pair[0], to_pair[1])
+        pair2 = (to_pair[2], to_pair[3])
+        
+        # def add_to_cluster(pair):
+
+            # if 
+            # for i,trader in enumerate(pair):
+            #     if trader.in_cluster != None:
+            #         trader.cluster.members += [pair[]]
+
+
 
     def get_equilibrium_p(self):
 
@@ -78,7 +105,8 @@ class Market():
             
         intersection = self.find_intersection(combined_buy, combined_sell)
 
-        if intersection == np.nan:
+        if intersection == None:
+            print('yeet')
             return 0, [], []
 
         # if len(intersection) == 0:
@@ -175,6 +203,9 @@ class Market():
             if (trader not in true_sellers) and (trader not in true_buyers):
                 trader.no_trade()
 
+        if self.cluster:
+            self.form_clusters()
+
         self.reset_lists()
 
     def find_intersection(self, combined_buy, combined_sell):
@@ -198,14 +229,20 @@ class Market():
 
         # print('q: ', q_intersection, 'p: ', p_intersection)
 
-        # q = np.arange(q_intersection+4000)
-        # plt.plot(q, buypol(q), label='buy', color='red')
-        # plt.plot(q, sellpol(q), label='sell', color='blue')
-        # plt.scatter(combined_buy[1], combined_buy[0], color='red')
-        # plt.scatter(combined_sell[1], combined_sell[0], color='blue')
-        # plt.scatter(q_intersection, p_intersection, color='red')
-        # plt.legend()
-        # plt.show()
+        # if len(self.p)%1000==0:
+        #     q = np.arange(q_intersection+4000)
+        #     plt.plot(q, buypol(q), label='buy', color='red')
+        #     plt.plot(q, sellpol(q), label='sell', color='blue')
+        #     plt.scatter(combined_buy[1], combined_buy[0], color='red')
+        #     plt.scatter(combined_sell[1], combined_sell[0], color='blue')
+        #     plt.scatter(q_intersection, p_intersection, color='black')
+        #     plt.legend()
+        #     plt.show()
+
+        if q_intersection[0] <= 0:
+            print('q: ', q_intersection[0], 'p: ', p_intersection)
+
+            return None
 
         return p_intersection
 

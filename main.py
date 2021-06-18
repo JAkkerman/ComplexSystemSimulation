@@ -7,13 +7,15 @@ import visualization as vis
 # from cluster import Cluster
 
 
-def initialise(N_agents, p, A, C):
+def initialise(N_agents, p, A, C, cluster):
 
-    MarketObj = market.Market(p)
+    MarketObj = market.Market(p, cluster)
 
     for i in range(N_agents):
         TraderObj = trader.Trader(i, MarketObj, A, C)
         MarketObj.traders += [TraderObj]
+
+    MarketObj.form_pairs()
 
     return MarketObj
 
@@ -32,21 +34,23 @@ def run_simulation(N_time, MarketObj):
         transaction_q, true_sellers, true_buyers = MarketObj.get_equilibrium_p()
         MarketObj.perform_transactions(transaction_q, true_sellers, true_buyers)
         MarketObj.update_hist_vol()
+        # MarketObj.form_clusters()
         # vis.vis_market_cross(MarketObj)
 
     vis.vis_price_series(MarketObj)
-    vis.vis_wealth_over_time(MarketObj)
+    # vis.vis_wealth_over_time(MarketObj)
 
 
 if __name__ == '__main__':
 
-    N_time = 1000
+    N_time = 10000
     N_agents = 100
     C = 30000
     A = 300
     p = 100
+    cluster = True
 
-    MarketObj = initialise(N_agents, p, A, C)
+    MarketObj = initialise(N_agents, p, A, C, cluster)
     run_simulation(N_time, MarketObj)
 
     # print(f'Number of sell orders: {len(MarketObj.sellers)}')
