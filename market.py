@@ -4,6 +4,8 @@ from scipy.optimize import fsolve
 
 import matplotlib.pyplot as plt # TEMP
 
+from cluster import Cluster
+
 
 class Market():
     def __init__(self, p, cluster, T=20, k=3.5, mu=1.01, hist_vol=0.1, Pc=0.1, Pa=0.0002):
@@ -47,66 +49,100 @@ class Market():
         # return np.zeros(len(self.traders), len(self.traders))
         return []
 
+    def init_cluster(self, members):
+        ClusterObj = Cluster(members, self)
+        self.clusters += [ClusterObj]
+        for member in members:
+            member.in_cluster = ClusterObj
+
+
+    def activate_cluster(self):
+        # print('jdhjkshfkjhsdhfjshdfskdjfhsdkjffhsd')
+        if np.random.random() < self.Pc:
+            # print('jdfsfjkshdjfhsdhfkshdfjshdhfhkskdfhksh')
+            activated_cluster = np.random.choice(self.clusters)
+            # print('yoot', activated_cluster)
+            activated_cluster.activate()
+            return activated_cluster
+        # print('yoot')
+        return None
+
+
+    def merge_clusters(self, cluster1, cluster2):
+        """
+        Creates a new cluster with all members from the other clusters
+        """
+        all_members = cluster1.members + cluster2.members
+        merged_cluster = Cluster(all_members, self)
+        for member in all_members:
+            member.in_cluster = merged_cluster
+
+        self.clusters.remove(cluster1)
+        self.clusters.remove(cluster2)
+        self.clusters += [merged_cluster]
+
     def form_clusters(self):
-        # chosen_pairs = np.random.choice(self.pairs, replace=False, p=self.Pa)
-        # print(chosen_pairs)
-        to_pair  = np.random.choice(self.traders, size=4, replace=False)
-        pair1 = (to_pair[0], to_pair[1])
-        pair2 = (to_pair[2], to_pair[3])
-        
-        # def add_to_cluster(pair):
+        """
+        Makes decision on which clusters to form
+        """
 
-            # if 
-            # for i,trader in enumerate(pair):
-            #     if trader.in_cluster != None:
-            #         trader.cluster.members += [pair[]]
+        # Randomly choose two individuals each time step and create cluster
+        for i in range(2):
+            pair  = np.random.choice(self.traders, size=2, replace=False)
+            # print(pair)
+            trader1 = pair[0]
+            trader2 = pair[1]
 
+            # Skip if already in the same cluster
+            if trader1.in_cluster == trader2.in_cluster and trader1.in_cluster != None:
+                continue
+            # Add trader to cluster if other trader already in cluster
+            elif trader1.in_cluster != None and trader2.in_cluster == None:
+                # print('add2')
+                # trader1.in_cluster.members += trader2
+                trader1.in_cluster.add_to_cluster(trader2)
+            elif trader1.in_cluster == None and trader2.in_cluster != None:
+                # print('add1')
+                trader2.in_cluster.add_to_cluster(trader1)
+
+            # If both in different clusters, merge clusters
+            elif trader1.in_cluster != None and trader2.in_cluster != None:
+                # print('merge')
+                self.merge_clusters(trader1.in_cluster, trader2.in_cluster)
+            
+            # If both in no cluster, make new cluster
+            else:
+                # print('init')
+                self.init_cluster([trader1, trader2])
 
 
     def get_equilibrium_p(self):
+        """
+        Determines clearing price and quantity
+        """
 
+        # Sort buyers and sellers based on their limit prices
         sorted_sell = sorted(self.sellers, key=lambda x: x.s_i)
         sorted_buy = sorted(self.buyers, key=lambda x: x.b_i, reverse=True)
-
-
-        # print(sorted_sell)
-        # print(sorted_buy)
-
-        # sorted_sell = sorted(MarketObj.sellers, key=lambda x: x.s_i)
-        # sorted_buy = sorted(MarketObj.buyers, key=lambda x: x.b_i)[::-1]
 
         p_sell = [i.s_i for i in sorted_sell] # sorted list of sell price limits
         q_sell = np.cumsum([i.a_s for i in sorted_sell])
         p_buy = [i.b_i for i in sorted_buy] # sorted list of buy price limits
         q_buy = np.cumsum([i.a_b for i in sorted_buy])
         
-        #sets = [[p_sell, q_sell], [p_buy, q_buy]]
-        #p_clearing = Intersection(sets)
-        #print(f'Intersection: {p_clearing}')
-        #pprint(vars(p_clearing))
-
-        # print('buy prices ', p_buy)
-        # print('sell prices ', p_sell)
-
-        # print('buy q ', q_buy)
-        # print('sell q ', q_sell)
-        
         combined_buy = np.array([p_buy, q_buy])
         combined_sell = np.array([p_sell, q_sell])
 
-        # print(len(sorted_sell))
-        # print(len(sorted_buy))
-
         # Append zeroes such that both lists are of equal size
-        if len(sorted_sell) > len(sorted_buy):
-            sorted_buy += [0 for i in range(len(sorted_sell)-len(sorted_buy))]
-        else:
-            sorted_sell = [0 for i in range(len(sorted_buy)-len(sorted_sell))] + sorted_sell
+        # if len(sorted_sell) > len(sorted_buy):
+        #     sorted_buy += [0 for i in range(len(sorted_sell)-len(sorted_buy))]
+        # else:
+        #     sorted_sell = [0 for i in range(len(sorted_buy)-len(sorted_sell))] + sorted_sell
             
         intersection = self.find_intersection(combined_buy, combined_sell)
 
         if intersection == None:
-            print('yeet')
+            # print('yeet')
             return 0, [], []
 
         # if len(intersection) == 0:
@@ -165,9 +201,10 @@ class Market():
 
 
     def perform_transactions(self, transaction_q, true_sellers, true_buyers):
-
-        # print('sellers ', true_sellers)
-        # print('buyers', true_buyers)
+        """
+        Performs buy and sell transactions, 
+            changes asset and cash balance of true buyers and sellers
+        """
 
         # Perform sell transactions:
         sold_q = transaction_q
@@ -182,8 +219,6 @@ class Market():
                     seller.A += [seller.A[-1] - sold_q]
                     sold_q -= sold_q
 
-        # print('sold q',  sold_q)
-
         # Perform buy transactions:
         bought_q = transaction_q
         for buyer in true_buyers:
@@ -197,14 +232,12 @@ class Market():
                     buyer.A += [buyer.A[-1] + bought_q]
                     bought_q -= bought_q
 
-        # print('bought q ', bought_q)
-
         for trader in self.traders:
             if (trader not in true_sellers) and (trader not in true_buyers):
                 trader.no_trade()
 
-        if self.cluster:
-            self.form_clusters()
+        # if self.cluster:
+        #     self.form_clusters()
 
         self.reset_lists()
 

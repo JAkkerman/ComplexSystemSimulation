@@ -26,6 +26,12 @@ def run_simulation(N_time, MarketObj):
     for t in tqdm(range(N_time)):
         # if t%1000==0:
             # print('Iteration ', t)
+
+        if cluster:
+            MarketObj.form_clusters()
+            activated_cluster = MarketObj.activate_cluster()
+            # print('yeet', activated_cluster)
+
         for TraderObj in MarketObj.traders:
             TraderObj.trade_decision()
 
@@ -35,7 +41,10 @@ def run_simulation(N_time, MarketObj):
         transaction_q, true_sellers, true_buyers = MarketObj.get_equilibrium_p()
         MarketObj.perform_transactions(transaction_q, true_sellers, true_buyers)
         MarketObj.update_hist_vol()
-        # MarketObj.form_clusters()
+
+        if cluster and activated_cluster != None:
+            activated_cluster.self_destruct()
+        # print(MarketObj.clusters)
         # vis.vis_market_cross(MarketObj)
 
     vis.vis_price_series(MarketObj)
