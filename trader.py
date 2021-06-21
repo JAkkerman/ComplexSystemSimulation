@@ -28,7 +28,7 @@ class Trader():
 
         # print(self.market.mu, self.market.sigma)
 
-        b_i = max(0, self.market.p[-1]*np.random.normal(self.market.mu, self.market.sigma))
+        b_i = max(0, self.market.p[-1]*np.random.normal(self.market.mu, self.market.sigma[-1]))
         # print(f'b_i = {b_i}')
 
         # Generate buy limit price
@@ -50,7 +50,7 @@ class Trader():
         # print('agent wants to sell', a_s, k)
 
         # Generate sell limit price
-        s_i = max(0, self.market.p[-1]/np.random.normal(self.market.mu, self.market.sigma))
+        s_i = max(0, self.market.p[-1]/np.random.normal(self.market.mu, self.market.sigma[-1]))
         # print(f's_i = {s_i}')
 
         self.s_i = s_i

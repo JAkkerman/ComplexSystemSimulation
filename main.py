@@ -8,7 +8,7 @@ from tqdm import tqdm
 # from cluster import Cluster
 
 
-def initialise(N_agents, p, A, C, cluster):
+def initialise(N_agents, p, A, C, cluster, garch):
 
     MarketObj = market.Market(p, cluster)
 
@@ -53,14 +53,16 @@ def run_simulation(N_time, MarketObj):
 
 if __name__ == '__main__':
 
-    N_time = 10000
+    N_time = 50000
     N_agents = 100
     C = 30000
     A = 300
     p = 100
-    cluster = True
 
-    MarketObj = initialise(N_agents, p, A, C, cluster)
+    cluster = True
+    garch = True
+
+    MarketObj = initialise(N_agents, p, A, C, cluster, garch)
     run_simulation(N_time, MarketObj)
 
     # print(f'Number of sell orders: {len(MarketObj.sellers)}')
