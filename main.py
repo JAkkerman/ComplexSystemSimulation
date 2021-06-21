@@ -6,6 +6,7 @@ import trader
 import visualization as vis
 from tqdm import tqdm
 # from cluster import Cluster
+from data import avg_degree
 
 
 def initialise(N_agents, p, A, C, cluster, garch):
@@ -21,7 +22,7 @@ def initialise(N_agents, p, A, C, cluster, garch):
     return MarketObj
 
 
-def run_simulation(N_time, MarketObj):
+def run_simulation(N_time, MarketObj, cluster):
 
     for t in tqdm(range(N_time)):
         # if t%1000==0:
@@ -38,6 +39,8 @@ def run_simulation(N_time, MarketObj):
         # print('yeet sellers', MarketObj.sellers)
         # print('yeet buyers', MarketObj.buyers)
 
+        avg_degree(MarketObj, cluster)
+
         transaction_q, true_sellers, true_buyers = MarketObj.get_equilibrium_p()
         MarketObj.perform_transactions(transaction_q, true_sellers, true_buyers)
         MarketObj.update_hist_vol()
@@ -47,7 +50,8 @@ def run_simulation(N_time, MarketObj):
         # print(MarketObj.clusters)
         # vis.vis_market_cross(MarketObj)
 
-    vis.vis_price_series(MarketObj)
+    # vis.cluster_vis(MarketObj, N_time, cluster)
+    # vis.vis_price_series(MarketObj, N_time)
     # vis.vis_wealth_over_time(MarketObj)
 
 
@@ -58,12 +62,18 @@ if __name__ == '__main__':
     C = 30000
     A = 300
     p = 100
-
-    cluster = True
+    # cluster = True
+    
+    Objects = []
     garch = True
+    for cluster in [True, False]:
 
-    MarketObj = initialise(N_agents, p, A, C, cluster, garch)
-    run_simulation(N_time, MarketObj)
-
+        MarketObj = initialise(N_agents, p, A, C, cluster, garch)
+        run_simulation(N_time, MarketObj, cluster)
+        Objects.append((MarketObj, cluster))
+        # if cluster:
+            # vis.cluster_vis(MarketObj, N_time, cluster)
+    vis.vis_vol_cluster(Objects, 0.2, 10, N_time)
+    # vis.vis_price_series(Objects)
     # print(f'Number of sell orders: {len(MarketObj.sellers)}')
     # print(f'Number of buy orders: {len(MarketObj.buyers)}')

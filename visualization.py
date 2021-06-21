@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from data import calc_norm_return, create_cdf, curve_fit_log
+from trader import Trader
+from data import calc_norm_return, create_cdf, curve_fit_log, sample_gauss, SP500_pl, vol_cluster
 
 def vis_market_cross(MarketObj):
     # buy_p = [buyer.b for buyer in MarketObj.buyers]
@@ -87,20 +88,32 @@ def vis_market_cross(MarketObj):
     ax.plot(x2, y2, color='darkgreen', marker='^')
 
 
-def vis_price_series(MarketObj):
+def vis_price_series(objects, N_time):
 
-    plt.plot(range(len(MarketObj.p)), MarketObj.p)
-    plt.xlabel('Time')
-    plt.ylabel('Price')
-    plt.show()
+    # plt.plot(range(len(MarketObj.p)), MarketObj.p)
+    # plt.xlabel('Time')
+    # plt.ylabel('Price')
+    # plt.show()
 
-    df = pd.DataFrame(MarketObj.p)
-    df = calc_norm_return(df)
-    cdf, bins_count = create_cdf(df)
-    popt, pcov, real = curve_fit_log(bins_count[15:35], cdf[16:36])
+    for i in range(len(objects)):
 
-    plt.plot(bins_count[15:35], real, label=f"$\\alpha$ = {round(popt[1],2)}")
-    plt.scatter(bins_count[1:], cdf, color='black')
+        df = pd.DataFrame(objects[i][0].p)
+        df = calc_norm_return(df, True)
+        cdf, bins_count = create_cdf(df)
+        popt, pcov, real = curve_fit_log(bins_count[1:], cdf)
+        if objects[i][1]:
+            label = f"Herd model $\\alpha$ = {round(popt[1],2)}"
+        else:
+            label = f"Model $\\alpha$ = {round(popt[1],2)}"
+        # plt.plot(bins_count[1:], real, label=label)
+        plt.plot(bins_count[1:], cdf, label=label)
+
+    gaus_bins_count, gaus_cdf = sample_gauss(N_time)
+    SP500_bins_count, SP500_cdf = SP500_pl()
+    # gaus_bins_count, gaus_real = sample_gauss()
+
+    plt.plot(gaus_bins_count[1:], gaus_cdf, label="Gaussian distribution")
+    plt.plot(SP500_bins_count[1:], SP500_cdf, label="SP500")
     plt.yscale('log')
     plt.xscale('log')
     plt.legend()
@@ -116,4 +129,50 @@ def vis_wealth_over_time(MarketObj):
         ax1.plot(range(len(TraderObj.C)), TraderObj.C, alpha=0.2)
     ax2.hist([TraderObj.C[-1] for TraderObj in MarketObj.traders])
 
+    plt.show()
+
+def cluster_vis(MarketObj, t, cluster):
+    if cluster:
+
+        ret = calc_norm_return(pd.DataFrame(MarketObj.p), False)
+        # max_val, min_val =  max(MarketObj.avg_degree),  min(MarketObj.avg_degree)
+        mean_val, std_val =  np.mean(MarketObj.avg_degree),  np.std(MarketObj.avg_degree)
+        # norm_degree = list(map(lambda x: (x - min_val)/(max_val - min_val), MarketObj.avg_degree))
+        norm_degree = list(map(lambda x: (x - mean_val)/(std_val), MarketObj.avg_degree))
+
+        plt.plot(np.linspace(0,t,t), ret.values, color="blue", label="Stock returns", linewidth=0.5)
+        plt.plot(np.linspace(0,t,t), norm_degree, color="orange", label="Avg network degree")
+        plt.xlabel("Time")
+        # plt.ylabel("Normalized average network degree")
+        plt.legend()
+        plt.show()
+
+def vis_vol_cluster(objects, highp, window, N_time):
+
+    cluster_gaus, cluster_sp500 = vol_cluster(None, highp, window, N_time, True)
+    count_gaus, bins_count_gaus = np.histogram(cluster_gaus, bins=[i for i in range(window+1)])
+    count_sp500, bins_count_sp500 = np.histogram(cluster_sp500, bins=[i for i in range(window+1)])
+    std_gaus = np.std(count_gaus)
+    std_sp500 = np.std(count_sp500)
+
+    for object in objects:
+        df = pd.DataFrame(object[0].p)
+        df = calc_norm_return(df, True)
+        series = vol_cluster(df.values, highp, window, N_time, False)
+        count_series, bins_count_series = np.histogram(series, bins=[i for i in range(window+1)])
+        std_series = np.std(count_series)
+        cluster_measure = std_series/std_gaus
+        if object[1]:
+            label = f"Herd model, R = {round(cluster_measure,2)}"
+        else:
+            label = f"Model, R = {round(cluster_measure,2)}"
+        plt.plot(bins_count_series[1:], count_series, label=label)
+
+
+    plt.plot(bins_count_gaus[1:], count_gaus, label="Gaussian distribution")
+    plt.plot(bins_count_sp500[1:], count_sp500, label=f"SP500, R = {round(std_sp500/std_gaus, 2)}")
+    plt.xlabel("Number of trading days")
+    plt.ylabel("Frequency")
+    plt.yscale("log")
+    plt.legend()
     plt.show()

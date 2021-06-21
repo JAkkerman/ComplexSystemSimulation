@@ -3,7 +3,7 @@ import math
 
 class Trader():
     def __init__(self, id, market, A, C):
-        self.id = id 
+        self.id = id
         self.market = market # add market object for easy access to parameters
         self.C = [C] # initialize list for cash time series
         self.A = [A] # initialize list for stock time series
