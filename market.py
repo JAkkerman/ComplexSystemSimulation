@@ -23,6 +23,7 @@ class Market():
         self.hist_vol = hist_vol # TODO: aanpassen aan historische vol
         self.sigma = self.update_sigma()
         self.pairs = []
+        self.avg_degree = []
 
     def update_hist_vol(self):
         if len(self.p) > self.T:
@@ -109,7 +110,7 @@ class Market():
             elif trader1.in_cluster != None and trader2.in_cluster != None:
                 # print('merge')
                 self.merge_clusters(trader1.in_cluster, trader2.in_cluster)
-            
+
             # If both in no cluster, make new cluster
             else:
                 # print('init')
@@ -129,7 +130,7 @@ class Market():
         q_sell = np.cumsum([i.a_s for i in sorted_sell])
         p_buy = [i.b_i for i in sorted_buy] # sorted list of buy price limits
         q_buy = np.cumsum([i.a_b for i in sorted_buy])
-        
+
         combined_buy = np.array([p_buy, q_buy])
         combined_sell = np.array([p_sell, q_sell])
 
@@ -138,7 +139,7 @@ class Market():
         #     sorted_buy += [0 for i in range(len(sorted_sell)-len(sorted_buy))]
         # else:
         #     sorted_sell = [0 for i in range(len(sorted_buy)-len(sorted_sell))] + sorted_sell
-            
+
         intersection = self.find_intersection(combined_buy, combined_sell)
 
         if intersection == None:
@@ -153,16 +154,16 @@ class Market():
         # plt.show()
 
         # buy_price_index = np.argmin(abs(np.array(p_buy) - np.mean(intersection[:,1])))
-        buy_price_index = np.where((np.array(p_buy) - intersection) > 0, 
+        buy_price_index = np.where((np.array(p_buy) - intersection) > 0,
                                 np.array(p_buy), np.inf).argmin()
         # buy_price_index = np.argmin(abs(np.array(p_buy) - intersection))
         buy_price = np.array(p_buy)[buy_price_index]
         buy_cum_quant = np.array(q_buy)[buy_price_index]
         # print('Buy Price:',buy_price)
         # print('Buy cum. quantity:', buy_cum_quant)
-        
-        
-        sell_price_index = np.where((np.array(p_sell) - buy_price) < 0, 
+
+
+        sell_price_index = np.where((np.array(p_sell) - buy_price) < 0,
                                         np.array(p_sell), -np.inf).argmax()
         # sell_price_index = np.argmin(abs(np.array(p_sell) - buy_price))
         # sell_price = np.array(p_sell)[sell_price_index]
@@ -178,7 +179,7 @@ class Market():
         # print('q_buy', q_buy)
 
         # if sell_cum_quant > buy_cum_quant:
-        #     seller_index = np.where((q_sell - buy_cum_quant) > 0, 
+        #     seller_index = np.where((q_sell - buy_cum_quant) > 0,
         #                             np.array(q_sell), -np.inf).argmax()
 
         #     # print('seller index: ', seller_index)
@@ -189,7 +190,7 @@ class Market():
         #     return transaction_q, sorted_sell[:seller_index+1], sorted_buy[:buy_price_index+1]
 
         # else:
-        #     buyer_index = np.where((q_buy - sell_cum_quant) < 0, 
+        #     buyer_index = np.where((q_buy - sell_cum_quant) < 0,
         #                             np.array(q_buy), np.inf).argmin()
 
         #     # print('buyer index: ', buyer_index)
@@ -202,7 +203,7 @@ class Market():
 
     def perform_transactions(self, transaction_q, true_sellers, true_buyers):
         """
-        Performs buy and sell transactions, 
+        Performs buy and sell transactions,
             changes asset and cash balance of true buyers and sellers
         """
 
@@ -290,19 +291,19 @@ class Market():
         # y_lists = y1[:]
         # y_lists.extend(y2)
         # y_dist = max(y_lists)/200.0
-        
+
         # x_lists = x1[:]
-        # x_lists.extend(x2)  
+        # x_lists.extend(x2)
         # x_dist = max(x_lists)/900.0
         # division = 1000
         # x_begin = min(x1[0], x2[0])     # 3
         # x_end = max(x1[-1], x2[-1])     # 8
-        
+
         # points1 = [t for t in zip(x1, y1) if x_begin<=t[0]<=x_end]  # [(3, 50), (4, 120), (5, 55), (6, 240), (7, 50), (8, 25)]
         # points2 = [t for t in zip(x2, y2) if x_begin<=t[0]<=x_end]  # [(3, 25), (4, 35), (5, 14), (6, 67), (7, 88), (8, 44)]
         # # print points1
         # # print points2
-        
+
         # x_axis = np.linspace(x_begin, x_end, division)
         # idx = 0
         # id_px1 = 0
@@ -350,7 +351,7 @@ class Market():
         #             xmin = min(x1_line[i], x2_line[j])
         #             intersection.append((x, ymin+(ymax-ymin)/2))
         #             # ax.plot(x, y1_current, 'ro') # Plot the cross point
-        #     idx += 1    
+        #     idx += 1
         #     # print("intersection points", intersection)
 
         # return np.array(intersection)
