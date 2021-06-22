@@ -57,7 +57,7 @@ def run_simulation(N_time, MarketObj, cluster):
 
 if __name__ == '__main__':
 
-    N_time = 10000
+    N_time = 50000
     N_agents = 100
     C = 30000
     A = 300

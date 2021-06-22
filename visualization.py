@@ -152,15 +152,15 @@ def vis_vol_cluster(objects, highp, window, N_time):
     cluster_gaus, cluster_sp500 = vol_cluster(None, highp, window, N_time, True)
     count_gaus, bins_count_gaus = np.histogram(cluster_gaus, bins=[i for i in range(window+1)])
     count_sp500, bins_count_sp500 = np.histogram(cluster_sp500, bins=[i for i in range(window+1)])
-    std_gaus = np.std(count_gaus)
-    std_sp500 = np.std(count_sp500)
+    std_gaus = np.std(cluster_gaus)
+    std_sp500 = np.std(cluster_sp500)
 
     for object in objects:
         df = pd.DataFrame(object[0].p)
         df = calc_norm_return(df, True)
         series = vol_cluster(df.values, highp, window, N_time, False)
         count_series, bins_count_series = np.histogram(series, bins=[i for i in range(window+1)])
-        std_series = np.std(count_series)
+        std_series = np.std(series)
         cluster_measure = std_series/std_gaus
         if object[1]:
             label = f"Herd model, R = {round(cluster_measure,2)}"

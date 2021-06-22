@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.polynomial.chebyshev import chebfit
 from scipy.optimize import fsolve
+import sys
 
 import matplotlib.pyplot as plt # TEMP
 
@@ -247,8 +248,11 @@ class Market():
         # print(combined_sell[0])
         # print(combined_sell[1])
 
-        buyfit = np.polyfit(combined_buy[1][5:-5], combined_buy[0][5:-5], deg=1)
-        sellfit = np.polyfit(combined_sell[1][5:-5], combined_sell[0][5:-5], deg=1)
+
+
+        boundary = 5
+        buyfit = np.polyfit(combined_buy[1][boundary:-boundary], combined_buy[0][boundary:-boundary], deg=1)
+        sellfit = np.polyfit(combined_sell[1][boundary:-boundary], combined_sell[0][boundary:-boundary], deg=1)
 
         buypol = np.poly1d(buyfit)
         sellpol = np.poly1d(sellfit)
@@ -259,19 +263,19 @@ class Market():
         q_intersection = solve_intersection(buypol, sellpol, 100)
         p_intersection = buypol(q_intersection[0])
 
-        # intersection = np.roots(buypol-sellpol)
+    # intersection = np.roots(buypol-sellpol)
 
         # print('q: ', q_intersection, 'p: ', p_intersection)
 
         # if len(self.p)%1000==0:
-        #     q = np.arange(q_intersection+4000)
-        #     plt.plot(q, buypol(q), label='buy', color='red')
-        #     plt.plot(q, sellpol(q), label='sell', color='blue')
-        #     plt.scatter(combined_buy[1], combined_buy[0], color='red')
-        #     plt.scatter(combined_sell[1], combined_sell[0], color='blue')
-        #     plt.scatter(q_intersection, p_intersection, color='black')
-        #     plt.legend()
-        #     plt.show()
+        # q = np.arange(q_intersection+4000)
+        # plt.plot(q, buypol(q), label='buy', color='red')
+        # plt.plot(q, sellpol(q), label='sell', color='blue')
+        # plt.scatter(combined_buy[1], combined_buy[0], color='red')
+        # plt.scatter(combined_sell[1], combined_sell[0], color='blue')
+        # plt.scatter(q_intersection, p_intersection, color='black')
+        # plt.legend()
+        # plt.show()
 
         if q_intersection[0] <= 0:
             print('q: ', q_intersection[0], 'p: ', p_intersection)
