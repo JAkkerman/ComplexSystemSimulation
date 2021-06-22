@@ -167,10 +167,48 @@ class Market():
         sorted_sell = sorted(self.sellers, key=lambda x: x.s_i)
         sorted_buy = sorted(self.buyers, key=lambda x: x.b_i, reverse=True)
 
-        p_sell = [i.s_i for i in sorted_sell] # sorted list of sell price limits
+        p_sell = np.array([i.s_i for i in sorted_sell]) # sorted list of sell price limits
         q_sell = np.cumsum([i.a_s for i in sorted_sell])
-        p_buy = [i.b_i for i in sorted_buy] # sorted list of buy price limits
+        p_buy = np.array([i.b_i for i in sorted_buy]) # sorted list of buy price limits
         q_buy = np.cumsum([i.a_b for i in sorted_buy])
+
+        # Compute distances between points
+        # p_diff = p_buy[:,np.newaxis] - p_sell
+        # q_diff = q_buy[:,np.newaxis] - q_sell
+
+        # Only distances that are 
+        # distances = np.sqrt(p_diff**2 + q_diff**2)
+        
+        # distances = (distances*(p_diff>0)*(np.roll((p_diff<0), -1)))
+        # distances[distances==0] = np.nan
+
+        # print(distances)
+
+        # plt.imshow(distances)
+        # plt.scatter(sell_price_index, buy_price_index)
+        # plt.show()
+
+        # buy_price_index, sell_price_index = np.unravel_index(np.nanargmin(distances, axis=None), distances.shape)
+
+        # clearing_price = p_buy[buy_price_index]
+        # if clearing_price == 0.0:
+        #     return None, [], []
+        # print(buy_price_index, sell_price_index)
+        # print(clearing_price)
+        # buy_cum_quant = np.array(q_buy)[buy_price_index]
+
+        # # If we had to take a buyer lower down the line, select the new closest 
+        # sell_cum_quant = np.array(q_sell)[sell_price_index]
+
+        # transaction_q = min(sell_cum_quant, buy_cum_quant)
+        # self.p += [clearing_price]
+
+        # plt.figure(figsize=(10,5))
+        # plt.scatter(q_buy, p_buy)
+        # plt.scatter(q_sell, p_sell)
+        # plt.scatter(q_buy[buy_price_index], p_buy[buy_price_index], color='red')
+        # plt.scatter(q_sell[sell_price_index], p_sell[sell_price_index], color='green')
+        # plt.show()
 
         intersection = self.find_intersection(p_buy, q_buy, p_sell, q_sell)
 

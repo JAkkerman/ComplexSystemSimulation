@@ -90,12 +90,13 @@ def vis_market_cross(MarketObj):
 
 def vis_price_series(objects, N_time):
 
-    # plt.plot(range(len(MarketObj.p)), MarketObj.p)
-    # plt.xlabel('Time')
-    # plt.ylabel('Price')
-    # plt.show()
 
     for i in range(len(objects)):
+
+        plt.plot(range(len(objects[i][0].p)), objects[i][0].p)
+        plt.xlabel('Time')
+        plt.ylabel('Price')
+        plt.show()
 
         df = pd.DataFrame(objects[i][0].p)
         df = calc_norm_return(df, True)
@@ -174,5 +175,32 @@ def vis_vol_cluster(objects, highp, window, N_time):
     plt.xlabel("Number of trading days")
     plt.ylabel("Frequency")
     plt.yscale("log")
+    plt.legend()
+    plt.show()
+
+
+def plot_lorenz_curve(MarketObj):
+    """
+    Plots the Lorenz curve
+    """
+    all_t = [1000, 5000, 10000]
+
+    fig = plt.figure(figsize=(6,6))
+
+    for t in all_t:
+        sorted_wealth = sorted(MarketObj.traders, key=lambda x: x.A[t-1]*MarketObj.p[t-1] + x.C[t-1])
+        sorted_wealth = [i.A[t-1]*MarketObj.p[t-1] + i.C[t-1] for i in sorted_wealth]
+        cum_wealth = np.cumsum(sorted_wealth)
+
+        X = np.linspace(0, 1, len(MarketObj.traders))
+        G = np.abs(1 - sum([(X[i+1]-X[i])*(cum_wealth[i+1]/sum(sorted_wealth)+cum_wealth[i]/sum(sorted_wealth)) 
+                            for i in range(len(MarketObj.traders)-1)]))
+
+        plt.plot(np.linspace(0,1,100), cum_wealth/sum(sorted_wealth), label=f't={t}, Gini={round(G,2)}')
+
+    plt.plot([0,1], [0,1], linestyle='--', color='black')
+    plt.title(f'Lorenz curve')
+    plt.xlabel('Cumulative share of agents')
+    plt.ylabel('Cumulative share of income')
     plt.legend()
     plt.show()

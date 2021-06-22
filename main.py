@@ -52,7 +52,7 @@ def run_simulation(N_time, MarketObj, cluster):
 
     # vis.cluster_vis(MarketObj, N_time, cluster)
     # vis.vis_price_series(MarketObj, N_time)
-    vis.vis_wealth_over_time(MarketObj)
+    # vis.vis_wealth_over_time(MarketObj)
 
 
 if __name__ == '__main__':
@@ -71,13 +71,15 @@ if __name__ == '__main__':
     Objects = []
     # for cluster in [True, False]:
     for cluster in [True]:
-
         MarketObj = initialise(N_agents, p, A, C, cluster, garch, garch_param)
         run_simulation(N_time, MarketObj, cluster)
         Objects.append((MarketObj, cluster))
         # if cluster:
             # vis.cluster_vis(MarketObj, N_time, cluster)
+        vis.plot_lorenz_curve(MarketObj)
     # vis.vis_vol_cluster(Objects, 0.2, 10, N_time)
-    vis.vis_price_series(Objects)
+
+    # vis.vis_price_series(Objects, N_time)
+    
     # print(f'Number of sell orders: {len(MarketObj.sellers)}')
     # print(f'Number of buy orders: {len(MarketObj.buyers)}')
