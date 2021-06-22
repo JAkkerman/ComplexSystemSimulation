@@ -42,9 +42,11 @@
 
     <!-- ======= Voorpagina Section ======= -->
     <section id="voorpagina">
-      <div class="voorpagina-container" data-aos="fade-up">
-        <h1>What is the effect of the cooperation level in the Genoa Market Model on the return distribution?</h1>
+      <div class="voorpagina-container" data-aos="fade-up" style="height: 100vh">
+        <!-- <h1>What is the effect of the cooperation level in the Genoa Market Model on the return distribution?</h1> -->
+        <h1>On the effects of cooperation in the Genoa Market Model</h1>
         <h2>University of Amsterdam, Complex System Simulation 2021</h2>
+        <h2>Joos Akkerman, Oscar de Keijzer, Susy Maijer and Loek van Steijn
         <!-- <a href="#refresher" class="btn-get-started scrollto">Show me the candy!</a> -->
       </div>
     </section><!-- End Voorpagina -->
@@ -63,11 +65,12 @@
           <ul>
             <!-- <li><a class="nav-link scrollto active" href="#voorpagina">Home</a></li> -->
             <li><a class="nav-link scrollto" href="#refresher">Refresher</a></li>
-            <li><a class="nav-link scrollto" href="#research1">Scale-free phenomenon of return distribution</a></li>
+            <li><a class="nav-link scrollto" href="#research1">Scale-free phenomenon</a></li>
             <li><a class="nav-link scrollto " href="#model">Market Model</a></li>
             <li><a class="nav-link scrollto " href="#experiment">Experiment</a></li>
-            <li><a class="nav-link scrollto" href="#datanalysis">Our S&P 500 data analysis</a></li>
+            <li><a class="nav-link scrollto" href="#datanalysis">S&P 500 data analysis</a></li>
             <li><a class="nav-link scrollto" href="#results">Results</a></li>
+            <li><a class="nav-link scrollto" href="#conclusion">Conclusion</a></li>
             <li><a class="nav-link scrollto" href="#team">Authors</a></li>
           </ul>
           <i class="bi bi-list mobile-nav-toggle"></i>
@@ -80,7 +83,7 @@
 
       <!-- ======= Refresher Section ======= -->
       <section id="refresher" class="refresher">
-        <div class="container">
+        <div class="container" style="height: 100vh">
 
           <div class="row">
             <div
@@ -125,7 +128,7 @@
 
       <!-- ======= Research S&P 500 returns Section ======= -->
       <section id="research1" class="research1">
-        <div class="container">
+        <div class="container" style="height: 100vh">
 
           <div class="text-center" data-aos="zoom-in">
             <h3>Gopikrishnan et al., 1999</h3>
@@ -145,8 +148,12 @@
 
       <!-- ======= Features S&P 500 Section ======= -->
       <section id="features" class="features">
-        <div class="container">
-
+        <div class="container" style="height: 100vh">
+            <div class="section-title" data-aos="fade-down">
+              <span>Their findings</span>
+              <h2>Their findings</h2>
+              <p>TODO</p>
+            </div>
           <div class="row">
             <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
               <div class="card" data-aos="fade-up">
@@ -202,7 +209,7 @@
 
       <!-- ======= Model Explanation Section ======= -->
       <section id="modelExpl" class="modelExpl">
-        <div class="container">
+        <div class="container" style="height: 100vh">
 
           <div class="section-title" data-aos="fade-down">
             <span>Genoa Market Model</span>
@@ -214,7 +221,7 @@
             <div class="col-md-6">
               <div class="icon-box" data-aos="fade-up" data-aos-delay="100">
                 <i class="bi bi-currency-euro" style="color: #0ea5e0;"></i>
-                <h4><a href="#">Agents (traders) get initialised with an amount of money</a></h4>
+                <h4><a href="#">Agents (traders) get initialised with an fixed amount of money</a></h4>
                 <p>
                   There is no explicit money creation during the model's lifetime.
                 </p>
@@ -234,7 +241,7 @@
 
             <div class="col-md-6">
               <div class="icon-box" data-aos="fade-up" data-aos-delay="300">
-                <i class="bi bi-signpost-split"" style=" color: #07cc70;"></i>
+                <i class="bi bi-signpost-split" style=" color: #07cc70;"></i>
                 <h4><a href="#">Agent either places sell or buy order with equal probability</a></h4>
                 <p>
                   Both sell and buy orders are constrained by limit prices.
@@ -278,22 +285,21 @@
           <div class="text-center" data-aos="zoom-in">
             <h3>Experiment</h3>
             <p><b>Research Question:</b></p>
-            <p>What is the effect of changing the level of cooperation (i.e, probability with which agents produce
-                volatility clustering) on the return distribution in the Genoa model?</p>
+            <p>What is the effect of changing the level of cooperation (i.e, probability with which agents are willing to work together) on the return distribution in the Genoa model?</p>
 
             <p><b>Hypothesis:</b></p>
             <p>We expect that without cooperation the price returns over time resemble Gaussian noise and no power law appears.</p>
             <p>With extreme cooperation, we expect to observe extreme inflation and market crashes due to extreme homogeneous behaviour.</p>
             <p>In between, we expect the power law to appear with the exponent value depending on the level of clustering.</p>
-
+            <a class="research1-btn" href="#setup">The model setup</a>
           </div>
         </div>
       </section><!-- End Experiment Section -->
 
-         
+
 <!-- ======= F.A.Q Section ======= -->
 <section id="setup" class="faq">
-  <div class="container">
+  <div class="container" style="height: 100vh">
 
     <div class="section-title" data-aos="fade-down">
       <span>Experimental Set-Up</span>
@@ -313,19 +319,19 @@
         </li>
 
         <li data-aos="fade-up" data-aos-delay="100">
-          <i class="bx bx-help-circle icon-help"></i> <a data-bs-toggle="collapse" data-bs-target="#faq-list-2" class="collapsed">
+          <i class="bx bx-help-circle icon-help"></i> <a data-bs-toggle="collapse" data-bs-target="#faq-list-2" class="collapse">
             Varied parameter value ranges<i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
-          <div id="faq-list-2" class="collapse" data-bs-parent=".faq-list">
+          <div id="faq-list-2" class="collapse show" data-bs-parent=".faq-list">
             <p>
               TODO</p>
           </div>
         </li>
 
         <li data-aos="fade-up" data-aos-delay="200">
-          <i class="bx bx-help-circle icon-help"></i> <a data-bs-toggle="collapse" data-bs-target="#faq-list-3" class="collapsed">
-            Other model information<div id="faq-list-3" class="collapse" data-bs-parent=".faq-list">
-            <p>
-              TODO</p>
+          <i class="bx bx-help-circle icon-help"></i> <a data-bs-toggle="collapse" data-bs-target="#faq-list-3" class="collapse">
+            Other model informations<i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
+            <div id="faq-list-3" class="collapse show" data-bs-parent=".faq-list">
+                <p>TODO</p>
           </div>
         </li>
 
@@ -356,7 +362,7 @@
 
       <!-- ======= Our Data Analysis Section ======= -->
       <section id="datanalysis" class="research1">
-        <div class="container">
+        <div class="container" style="height: 100vh">
 
           <div class="text-center" data-aos="zoom-in">
             <h3>RESULTS - PART 1</h3>
@@ -376,7 +382,7 @@
 
       <!-- ======= Results Section ======= -->
       <section id="results" class="results section-bg">
-        <div class="container">
+        <div class="container" style="height: 100vh">
 
           <div class="section-title" data-aos="fade-down">
             <span>RESULTS - PART 2</span>
@@ -384,161 +390,85 @@
             <p>The major findings of our Genoa Market Model experiment.</p>
           </div>
 
-          <div class="row" data-aos="fade-up" data-aos-delay="150">
-            <div class="col-lg-12 d-flex justify-content-center">
-              <ul id="results-flters">
-                <li data-filter="*" class="filter-active">All</li>
-                <li data-filter=".filter-app">Scale-free return distribution</li>
-                <li data-filter=".filter-card">No volatility clustering</li>
-                <li data-filter=".filter-web">...?</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="row results-container" data-aos="fade-up" data-aos-delay="300">
-
-            <div class="col-lg-4 col-md-6 results-item filter-app">
-              <div class="results-wrap">
-                <img src="assets/img/portfolio/portfolio-1.jpg" class="img-fluid" alt="">
-                <div class="results-info">
-                  <h4>App 1</h4>
-                  <p>App</p>
-                </div>
-                <div class="results-links">
-                  <a href="assets/img/portfolio/portfolio-1.jpg" data-gallery="resultsGallery" class="results-lightbox"
-                    title="App 1"><i class="bx bx-plus"></i></a>
-                  <a href="results-details.html" title="More Details"><i class="bx bx-link"></i></a>
+          <div class="row">
+            <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
+              <div class="card" data-aos="fade-up">
+                <img src="assets/img/susy/exponentialdecay.png" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <h5 class="card-title"><a href="">Power law asymptotic behaviour</a></h5>
+                  <p class="card-text">For time periods up to 4 days, the probability of returns are consistent with a
+                    power-law.</p>
                 </div>
               </div>
             </div>
-
-            <div class="col-lg-4 col-md-6 results-item filter-web">
-              <div class="results-wrap">
-                <img src="assets/img/portfolio/portfolio-2.jpg" class="img-fluid" alt="">
-                <div class="results-info">
-                  <h4>Web 3</h4>
-                  <p>Web</p>
-                </div>
-                <div class="results-links">
-                  <a href="assets/img/portfolio/portfolio-2.jpg" data-gallery="resultsGallery" class="results-lightbox"
-                    title="Web 3"><i class="bx bx-plus"></i></a>
-                  <a href="results-details.html" title="More Details"><i class="bx bx-link"></i></a>
+            <div class="col-lg-4 col-md-6 mt-5 mt-md-0 d-flex align-items-stretch">
+              <div class="card" data-aos="fade-up" data-aos-delay="150">
+                <img src="assets/img/susy/levy3.png" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <h5 class="card-title"><a href="">.. with exponent &thickapprox; 3!</a></h5>
+                  <p class="card-text">This lies well outside stable Levy regime 0 &gt; a &gt; 2.</p>
                 </div>
               </div>
             </div>
-
-            <div class="col-lg-4 col-md-6 results-item filter-app">
-              <div class="results-wrap">
-                <img src="assets/img/portfolio/portfolio-3.jpg" class="img-fluid" alt="">
-                <div class="results-info">
-                  <h4>App 2</h4>
-                  <p>App</p>
-                </div>
-                <div class="results-links">
-                  <a href="assets/img/portfolio/portfolio-3.jpg" data-gallery="resultsGallery" class="results-lightbox"
-                    title="App 2"><i class="bx bx-plus"></i></a>
-                  <a href="results-details.html" title="More Details"><i class="bx bx-link"></i></a>
+            <div class="col-lg-4 col-md-6 mt-5 mt-lg-0 d-flex align-items-stretch">
+              <div class="card" data-aos="fade-up" data-aos-delay="300">
+                <img src="assets/img/susy/gaussian.png" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <h5 class="card-title"><a href="">Gaussian for longer time periods</a></h5>
+                  <p class="card-text">For time periods longer than 4 days, the returns slowly converge to a Gaussian
+                    ditribution.</p>
                 </div>
               </div>
             </div>
-
-            <div class="col-lg-4 col-md-6 results-item filter-card">
-              <div class="results-wrap">
-                <img src="assets/img/portfolio/portfolio-4.jpg" class="img-fluid" alt="">
-                <div class="results-info">
-                  <h4>Card 2</h4>
-                  <p>Card</p>
-                </div>
-                <div class="results-links">
-                  <a href="assets/img/portfolio/portfolio-4.jpg" data-gallery="resultsGallery" class="results-lightbox"
-                    title="Card 2"><i class="bx bx-plus"></i></a>
-                  <a href="results-details.html" title="More Details"><i class="bx bx-link"></i></a>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6 results-item filter-web">
-              <div class="results-wrap">
-                <img src="assets/img/portfolio/portfolio-5.jpg" class="img-fluid" alt="">
-                <div class="results-info">
-                  <h4>Web 2</h4>
-                  <p>Web</p>
-                </div>
-                <div class="results-links">
-                  <a href="assets/img/portfolio/portfolio-5.jpg" data-gallery="resultsGallery" class="results-lightbox"
-                    title="Web 2"><i class="bx bx-plus"></i></a>
-                  <a href="results-details.html" title="More Details"><i class="bx bx-link"></i></a>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6 results-item filter-app">
-              <div class="results-wrap">
-                <img src="assets/img/portfolio/portfolio-6.jpg" class="img-fluid" alt="">
-                <div class="results-info">
-                  <h4>App 3</h4>
-                  <p>App</p>
-                </div>
-                <div class="results-links">
-                  <a href="assets/img/portfolio/portfolio-6.jpg" data-gallery="resultsGallery" class="results-lightbox"
-                    title="App 3"><i class="bx bx-plus"></i></a>
-                  <a href="results-details.html" title="More Details"><i class="bx bx-link"></i></a>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6 results-item filter-card">
-              <div class="results-wrap">
-                <img src="assets/img/portfolio/portfolio-7.jpg" class="img-fluid" alt="">
-                <div class="results-info">
-                  <h4>Card 1</h4>
-                  <p>Card</p>
-                </div>
-                <div class="results-links">
-                  <a href="assets/img/portfolio/portfolio-7.jpg" data-gallery="resultsGallery" class="results-lightbox"
-                    title="Card 1"><i class="bx bx-plus"></i></a>
-                  <a href="results-details.html" title="More Details"><i class="bx bx-link"></i></a>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6 results-item filter-card">
-              <div class="results-wrap">
-                <img src="assets/img/portfolio/portfolio-8.jpg" class="img-fluid" alt="">
-                <div class="results-info">
-                  <h4>Card 3</h4>
-                  <p>Card</p>
-                </div>
-                <div class="results-links">
-                  <a href="assets/img/portfolio/portfolio-8.jpg" data-gallery="resultsGallery" class="results-lightbox"
-                    title="Card 3"><i class="bx bx-plus"></i></a>
-                  <a href="results-details.html" title="More Details"><i class="bx bx-link"></i></a>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6 results-item filter-web">
-              <div class="results-wrap">
-                <img src="assets/img/portfolio/portfolio-9.jpg" class="img-fluid" alt="">
-                <div class="results-info">
-                  <h4>Web 3</h4>
-                  <p>Web</p>
-                </div>
-                <div class="results-links">
-                  <a href="assets/img/portfolio/portfolio-9.jpg" data-gallery="resultsGallery" class="results-lightbox"
-                    title="Web 3"><i class="bx bx-plus"></i></a>
-                  <a href="results-details.html" title="More Details"><i class="bx bx-link"></i></a>
-                </div>
-              </div>
-            </div>
-
           </div>
 
         </div>
       </section><!-- End Results Section -->
 
+<!-- Conclusion section -->
+      <section id="conclusion" class="results section-bg">
+        <div class="container" style="height: 100vh">
 
+          <div class="section-title" data-aos="fade-down">
+            <span>Conclusion</span>
+            <h2>Conclusion</h2>
+            <p>TODO</p>
+          </div>
 
+          <div class="row">
+            <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
+              <div class="card" data-aos="fade-up">
+                <img src="assets/img/susy/exponentialdecay.png" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <h5 class="card-title"><a href="">Power law asymptotic behaviour</a></h5>
+                  <p class="card-text">For time periods up to 4 days, the probability of returns are consistent with a
+                    power-law.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mt-5 mt-md-0 d-flex align-items-stretch">
+              <div class="card" data-aos="fade-up" data-aos-delay="150">
+                <img src="assets/img/susy/levy3.png" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <h5 class="card-title"><a href="">.. with exponent &thickapprox; 3!</a></h5>
+                  <p class="card-text">This lies well outside stable Levy regime 0 &gt; a &gt; 2.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mt-5 mt-lg-0 d-flex align-items-stretch">
+              <div class="card" data-aos="fade-up" data-aos-delay="300">
+                <img src="assets/img/susy/gaussian.png" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <h5 class="card-title"><a href="">Gaussian for longer time periods</a></h5>
+                  <p class="card-text">For time periods longer than 4 days, the returns slowly converge to a Gaussian
+                    ditribution.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+    </section><!-- End Conclusion Section -->
 
 
 
@@ -600,7 +530,7 @@
                 <img src="assets/img/team/team-3.jpg" class="img-fluid" alt="">
                 <div class="member-info">
                   <div class="member-info-content">
-                    <h4>WOscar Ditshuizen</h4>
+                    <h4>Oscar De Keijzer</h4>
                     <span>CTO</span>
                   </div>
                   <div class="social">

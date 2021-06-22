@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.polynomial.chebyshev import chebfit
 from scipy.optimize import fsolve
+import sys
 
 from arch import arch_model
 import datetime as dt
@@ -10,6 +11,7 @@ import pandas as pd
 import matplotlib.pyplot as plt # TEMP
 
 from cluster import Cluster
+from data import calc_norm_return
 
 
 class Market():
@@ -45,7 +47,7 @@ class Market():
         # Original volatility prediction, as specified in Raberto et al (2001)
         if not self.garch:
             self.sigma += [self.k*self.hist_vol]
-        
+
         # GARCH fitting, if selected
         else:
             # If lenght of price series is smaller than 20, use default value
@@ -58,7 +60,7 @@ class Market():
 
     def update_hist_vol(self):
         """
-        Updates historical volatility by taking the standard deviation of the 
+        Updates historical volatility by taking the standard deviation of the
             past price series.
         """
         if len(self.p) > self.T:
@@ -77,6 +79,7 @@ class Market():
 
         am = arch_model(returns, p=self.garch_param[0], q=self.garch_param[1])
         res = am.fit()
+        print("jee")
         forecasts = res.forecast(reindex=True)
 
         print(forecasts.variance)
@@ -105,7 +108,7 @@ class Market():
 
     def activate_cluster(self):
         """
-        Activates one of the clusters with probability Pc, 
+        Activates one of the clusters with probability Pc,
             randomly selects activated cluster.
         """
         if np.random.random() < self.Pc:
@@ -288,6 +291,20 @@ class Market():
 
         q_intersection = solve_intersection(buypol, sellpol, 100)
         p_intersection = buypol(q_intersection[0])
+
+    # intersection = np.roots(buypol-sellpol)
+
+        # print('q: ', q_intersection, 'p: ', p_intersection)
+
+        # if len(self.p)%1000==0:
+        # q = np.arange(q_intersection+4000)
+        # plt.plot(q, buypol(q), label='buy', color='red')
+        # plt.plot(q, sellpol(q), label='sell', color='blue')
+        # plt.scatter(combined_buy[1], combined_buy[0], color='red')
+        # plt.scatter(combined_sell[1], combined_sell[0], color='blue')
+        # plt.scatter(q_intersection, p_intersection, color='black')
+        # plt.legend()
+        # plt.show()
 
         if q_intersection[0] <= 0:
             print('q: ', q_intersection[0], 'p: ', p_intersection)
