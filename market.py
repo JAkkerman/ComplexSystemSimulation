@@ -3,13 +3,19 @@ from numpy.polynomial.chebyshev import chebfit
 from scipy.optimize import fsolve
 import sys
 
+from arch import arch_model
+import datetime as dt
+import arch.data.sp500
+import pandas as pd
+
 import matplotlib.pyplot as plt # TEMP
 
 from cluster import Cluster
 
 
 class Market():
-    def __init__(self, p, cluster, T=20, k=3.5, mu=1.01, hist_vol=0.1, Pc=0.1, Pa=0.0002):
+    def __init__(self, p, cluster, garch, garch_param,
+                 T=20, k=3.5, mu=1.01, hist_vol=0.1, Pc=0.1, Pa=0.0002):
         self.p = [p]
         self.cluster=cluster
         self.traders = []
@@ -26,30 +32,72 @@ class Market():
         self.pairs = []
         self.avg_degree = []
 
+        self.garch = garch
+        self.garch_param = garch_param
+        self.garch_model = None
+
         self.update_sigma()
 
+
+    def update_sigma(self):
+        """
+        Updates sigma.
+        """
+        # Original volatility prediction, as specified in Raberto et al (2001)
+        if not self.garch:
+            self.sigma += [self.k*self.hist_vol]
+
+        # GARCH fitting, if selected
+        else:
+            # If lenght of price series is smaller than 20, use default value
+            if len(self.p) < 100:
+                self.sigma += [self.k*self.hist_vol]
+            # Otherwise, fit GARCH and predict one time step in the future
+            else:
+                self.sigma += [self.fit_GARCH()]
+
+
     def update_hist_vol(self):
+        """
+        Updates historical volatility by taking the standard deviation of the
+            past price series.
+        """
         if len(self.p) > self.T:
             returns = np.log(np.roll(np.array(self.p[:-self.T]), shift=-1)/np.array(self.p[:-self.T]))
             self.hist_vol = np.std(returns)
             self.update_sigma()
 
-    def update_sigma(self):
-        self.sigma += [self.k*self.hist_vol]
+
+    def fit_GARCH(self):
+        """
+        Fits GARCH model to previous price data.
+        """
+        # Get last 20-100 data points
+        price_data = pd.DataFrame(self.p[-min(len(self.p)-1, 100):])
+        returns = 100*price_data.pct_change().dropna()
+
+        am = arch_model(returns, p=self.garch_param[0], q=self.garch_param[1])
+        res = am.fit()
+        forecasts = res.forecast(reindex=True)
+
+        print(forecasts.variance)
+
+        print(np.sqrt(forecasts.variance.iloc[-1][0]))
+        return np.sqrt(forecasts.variance.iloc[-1][0])
+
 
     def reset_lists(self):
+        """
+        Resets lists, deletes buyers and sellers from this iteration.
+        """
         self.buyers = []
         self.sellers = []
 
-    def form_pairs(self):
-        # pass
-        # print(np.array())
-        # print(set([[(i,j) for i in range(len(self.traders))] for j in range(len(self.traders))]))
-        # return np.array([[(i,j) for i in range(len(self.traders)) if i!=j] for j in range(len(self.traders))])
-        # return np.zeros(len(self.traders), len(self.traders))
-        return []
 
     def init_cluster(self, members):
+        """
+        Initializes cluster object
+        """
         ClusterObj = Cluster(members, self)
         self.clusters += [ClusterObj]
         for member in members:
@@ -57,20 +105,20 @@ class Market():
 
 
     def activate_cluster(self):
-        # print('jdhjkshfkjhsdhfjshdfskdjfhsdkjffhsd')
+        """
+        Activates one of the clusters with probability Pc,
+            randomly selects activated cluster.
+        """
         if np.random.random() < self.Pc:
-            # print('jdfsfjkshdjfhsdhfkshdfjshdhfhkskdfhksh')
             activated_cluster = np.random.choice(self.clusters)
-            # print('yoot', activated_cluster)
             activated_cluster.activate()
             return activated_cluster
-        # print('yoot')
         return None
 
 
     def merge_clusters(self, cluster1, cluster2):
         """
-        Creates a new cluster with all members from the other clusters
+        Creates a new cluster with all members from the other clusters.
         """
         all_members = cluster1.members + cluster2.members
         merged_cluster = Cluster(all_members, self)
@@ -81,15 +129,15 @@ class Market():
         self.clusters.remove(cluster2)
         self.clusters += [merged_cluster]
 
+
     def form_clusters(self):
         """
-        Makes decision on which clusters to form
+        Makes decision on which clusters to form.
         """
 
         # Randomly choose two individuals each time step and create cluster
         for i in range(2):
             pair  = np.random.choice(self.traders, size=2, replace=False)
-            # print(pair)
             trader1 = pair[0]
             trader2 = pair[1]
 
@@ -98,21 +146,16 @@ class Market():
                 continue
             # Add trader to cluster if other trader already in cluster
             elif trader1.in_cluster != None and trader2.in_cluster == None:
-                # print('add2')
-                # trader1.in_cluster.members += trader2
                 trader1.in_cluster.add_to_cluster(trader2)
             elif trader1.in_cluster == None and trader2.in_cluster != None:
-                # print('add1')
                 trader2.in_cluster.add_to_cluster(trader1)
 
             # If both in different clusters, merge clusters
             elif trader1.in_cluster != None and trader2.in_cluster != None:
-                # print('merge')
                 self.merge_clusters(trader1.in_cluster, trader2.in_cluster)
 
             # If both in no cluster, make new cluster
             else:
-                # print('init')
                 self.init_cluster([trader1, trader2])
 
 
@@ -130,74 +173,27 @@ class Market():
         p_buy = [i.b_i for i in sorted_buy] # sorted list of buy price limits
         q_buy = np.cumsum([i.a_b for i in sorted_buy])
 
-        combined_buy = np.array([p_buy, q_buy])
-        combined_sell = np.array([p_sell, q_sell])
-
-        # Append zeroes such that both lists are of equal size
-        # if len(sorted_sell) > len(sorted_buy):
-        #     sorted_buy += [0 for i in range(len(sorted_sell)-len(sorted_buy))]
-        # else:
-        #     sorted_sell = [0 for i in range(len(sorted_buy)-len(sorted_sell))] + sorted_sell
-
-        intersection = self.find_intersection(combined_buy, combined_sell)
+        intersection = self.find_intersection(p_buy, q_buy, p_sell, q_sell)
 
         if intersection == None:
-            # print('yeet')
             return 0, [], []
 
-        # if len(intersection) == 0:
-        #     return 0, [], []
-
-        # print('Numpy array:', intersection)
-        # print('Average clearing price:', np.mean(intersection[:,1]))
-        # plt.show()
-
-        # buy_price_index = np.argmin(abs(np.array(p_buy) - np.mean(intersection[:,1])))
+        # Find buyer closest to the intersection
         buy_price_index = np.where((np.array(p_buy) - intersection) > 0,
                                 np.array(p_buy), np.inf).argmin()
-        # buy_price_index = np.argmin(abs(np.array(p_buy) - intersection))
         buy_price = np.array(p_buy)[buy_price_index]
         buy_cum_quant = np.array(q_buy)[buy_price_index]
-        # print('Buy Price:',buy_price)
-        # print('Buy cum. quantity:', buy_cum_quant)
 
-
+        # Find seller closest to the intersection
         sell_price_index = np.where((np.array(p_sell) - buy_price) < 0,
                                         np.array(p_sell), -np.inf).argmax()
-        # sell_price_index = np.argmin(abs(np.array(p_sell) - buy_price))
-        # sell_price = np.array(p_sell)[sell_price_index]
         sell_cum_quant = np.array(q_sell)[sell_price_index]
-        # print('Sell Price:',sell_price)
-        # print('Sell cum. quantity:',sell_cum_quant)
 
+        # Determine transation quantity
         transaction_q = min(sell_cum_quant, buy_cum_quant)
         self.p += [buy_price]
 
         return transaction_q, sorted_sell, sorted_buy
-
-        # print('q_buy', q_buy)
-
-        # if sell_cum_quant > buy_cum_quant:
-        #     seller_index = np.where((q_sell - buy_cum_quant) > 0,
-        #                             np.array(q_sell), -np.inf).argmax()
-
-        #     # print('seller index: ', seller_index)
-
-        #     # print('Last buyer q: ', sorted_buy[buy_price_index].a_b)
-        #     # print('Last seller q: ', sorted_sell[seller_index].a_s)
-
-        #     return transaction_q, sorted_sell[:seller_index+1], sorted_buy[:buy_price_index+1]
-
-        # else:
-        #     buyer_index = np.where((q_buy - sell_cum_quant) < 0,
-        #                             np.array(q_buy), np.inf).argmin()
-
-        #     # print('buyer index: ', buyer_index)
-
-        #     # print('Last buyer q: ', sorted_buy[buyer_index].a_b)
-        #     # print('Last seller q: ', sorted_sell[sell_price_index].a_s)
-
-        #     return transaction_q, sorted_sell[:sell_price_index+1], sorted_buy[:buyer_index+1]
 
 
     def perform_transactions(self, transaction_q, true_sellers, true_buyers):
@@ -236,21 +232,16 @@ class Market():
             if (trader not in true_sellers) and (trader not in true_buyers):
                 trader.no_trade()
 
-        # if self.cluster:
-        #     self.form_clusters()
-
         self.reset_lists()
 
-    def find_intersection(self, combined_buy, combined_sell):
 
-        # print(combined_sell[0])
-        # print(combined_sell[1])
+    def find_intersection(self, p_buy, q_buy, p_sell, q_sell):
+        """
+        Fits polynomial to buy and sell curves, finds intersection
+        """
 
-
-
-        boundary = 5
-        buyfit = np.polyfit(combined_buy[1][boundary:-boundary], combined_buy[0][boundary:-boundary], deg=1)
-        sellfit = np.polyfit(combined_sell[1][boundary:-boundary], combined_sell[0][boundary:-boundary], deg=1)
+        buyfit = np.polyfit(q_buy[5:-5], p_buy[5:-5], deg=1)
+        sellfit = np.polyfit(q_sell[5:-5], p_sell[5:-5], deg=1)
 
         buypol = np.poly1d(buyfit)
         sellpol = np.poly1d(sellfit)
@@ -281,79 +272,3 @@ class Market():
             return None
 
         return p_intersection
-
-
-    # def find_intersection(self, combined_buy, combined_sell):
-
-        # x1=list(combined_buy[1])
-        # y1=list(combined_buy[0])
-        # x2=list(combined_sell[1])
-        # y2=list(combined_sell[0])
-
-        # y_lists = y1[:]
-        # y_lists.extend(y2)
-        # y_dist = max(y_lists)/200.0
-
-        # x_lists = x1[:]
-        # x_lists.extend(x2)
-        # x_dist = max(x_lists)/900.0
-        # division = 1000
-        # x_begin = min(x1[0], x2[0])     # 3
-        # x_end = max(x1[-1], x2[-1])     # 8
-
-        # points1 = [t for t in zip(x1, y1) if x_begin<=t[0]<=x_end]  # [(3, 50), (4, 120), (5, 55), (6, 240), (7, 50), (8, 25)]
-        # points2 = [t for t in zip(x2, y2) if x_begin<=t[0]<=x_end]  # [(3, 25), (4, 35), (5, 14), (6, 67), (7, 88), (8, 44)]
-        # # print points1
-        # # print points2
-
-        # x_axis = np.linspace(x_begin, x_end, division)
-        # idx = 0
-        # id_px1 = 0
-        # id_px2 = 0
-        # x1_line = []
-        # y1_line = []
-        # x2_line = []
-        # y2_line = []
-        # xpoints = len(x_axis)
-        # intersection = []
-        # while idx < xpoints:
-        #     # Iterate over two line segments
-        #     x = x_axis[idx]
-        #     if id_px1>-1:
-        #         if x >= points1[id_px1][0] and id_px1<len(points1)-1:
-        #             y1_line = np.linspace(points1[id_px1][1], points1[id_px1+1][1], 1000) # 1.4 1.401 1.402 etc. bis 2.1
-        #             x1_line = np.linspace(points1[id_px1][0], points1[id_px1+1][0], 1000)
-        #             id_px1 = id_px1 + 1
-        #             if id_px1 == len(points1):
-        #                 x1_line = []
-        #                 y1_line = []
-        #                 id_px1 = -1
-        #     if id_px2>-1:
-        #         if x >= points2[id_px2][0] and id_px2<len(points2)-1:
-        #             y2_line = np.linspace(points2[id_px2][1], points2[id_px2+1][1], 1000)
-        #             x2_line = np.linspace(points2[id_px2][0], points2[id_px2+1][0], 1000)
-        #             id_px2 = id_px2 + 1
-        #             if id_px2 == len(points2):
-        #                 x2_line = []
-        #                 y2_line = []
-        #                 id_px2 = -1
-        #     if x1_line!=[] and y1_line!=[] and x2_line!=[] and y2_line!=[]:
-        #         i = 0
-        #         while abs(x-x1_line[i])>x_dist and i < len(x1_line)-1:
-        #             i = i + 1
-        #         y1_current = y1_line[i]
-        #         j = 0
-        #         while abs(x-x2_line[j])>x_dist and j < len(x2_line)-1:
-        #             j = j + 1
-        #         y2_current = y2_line[j]
-        #         if abs(y2_current-y1_current)<y_dist and i != len(x1_line) and j != len(x2_line):
-        #             ymax = max(y1_current, y2_current)
-        #             ymin = min(y1_current, y2_current)
-        #             xmax = max(x1_line[i], x2_line[j])
-        #             xmin = min(x1_line[i], x2_line[j])
-        #             intersection.append((x, ymin+(ymax-ymin)/2))
-        #             # ax.plot(x, y1_current, 'ro') # Plot the cross point
-        #     idx += 1
-        #     # print("intersection points", intersection)
-
-        # return np.array(intersection)
