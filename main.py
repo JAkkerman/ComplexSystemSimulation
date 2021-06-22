@@ -9,15 +9,15 @@ from tqdm import tqdm
 from data import avg_degree
 
 
-def initialise(N_agents, p, A, C, cluster, garch):
+def initialise(N_agents, p, A, C, cluster, garch, garch_param):
 
-    MarketObj = market.Market(p, cluster)
+    MarketObj = market.Market(p, cluster, garch, garch_param)
 
     for i in range(N_agents):
         TraderObj = trader.Trader(i, MarketObj, A, C)
         MarketObj.traders += [TraderObj]
 
-    MarketObj.form_pairs()
+    # MarketObj.form_pairs()
 
     return MarketObj
 
@@ -52,28 +52,32 @@ def run_simulation(N_time, MarketObj, cluster):
 
     # vis.cluster_vis(MarketObj, N_time, cluster)
     # vis.vis_price_series(MarketObj, N_time)
-    # vis.vis_wealth_over_time(MarketObj)
+    vis.vis_wealth_over_time(MarketObj)
 
 
 if __name__ == '__main__':
 
-    N_time = 50000
+    N_time = 10000
     N_agents = 100
     C = 30000
     A = 300
     p = 100
-    # cluster = True
-    
-    Objects = []
-    garch = True
-    for cluster in [True, False]:
 
-        MarketObj = initialise(N_agents, p, A, C, cluster, garch)
+    # Set parameters for Garch
+    garch = False
+    garch_n = 4
+    garch_param = [1,1]
+
+    Objects = []
+    # for cluster in [True, False]:
+    for cluster in [True]:
+
+        MarketObj = initialise(N_agents, p, A, C, cluster, garch, garch_param)
         run_simulation(N_time, MarketObj, cluster)
         Objects.append((MarketObj, cluster))
         # if cluster:
             # vis.cluster_vis(MarketObj, N_time, cluster)
-    vis.vis_vol_cluster(Objects, 0.2, 10, N_time)
-    # vis.vis_price_series(Objects)
+    # vis.vis_vol_cluster(Objects, 0.2, 10, N_time)
+    vis.vis_price_series(Objects)
     # print(f'Number of sell orders: {len(MarketObj.sellers)}')
     # print(f'Number of buy orders: {len(MarketObj.buyers)}')
