@@ -22,22 +22,20 @@ class Market():
         self.Pc = Pc
         self.Pa = Pa
         self.hist_vol = hist_vol # TODO: aanpassen aan historische vol
-        self.sigma = self.update_sigma()
+        self.sigma = []
         self.pairs = []
         self.avg_degree = []
 
+        self.update_sigma()
+
     def update_hist_vol(self):
         if len(self.p) > self.T:
-            # print('T ', self.T)
-            # print(self.p[:-self.T])
-            # print(np.array(self.p[:-self.T]))
             returns = np.log(np.roll(np.array(self.p[:-self.T]), shift=-1)/np.array(self.p[:-self.T]))
-            # print(np.std(returns))
             self.hist_vol = np.std(returns)
             self.update_sigma()
 
     def update_sigma(self):
-        return self.k*self.hist_vol
+        self.sigma += [self.k*self.hist_vol]
 
     def reset_lists(self):
         self.buyers = []

@@ -9,7 +9,7 @@ from tqdm import tqdm
 from data import avg_degree
 
 
-def initialise(N_agents, p, A, C, cluster):
+def initialise(N_agents, p, A, C, cluster, garch):
 
     MarketObj = market.Market(p, cluster)
 
@@ -63,10 +63,12 @@ if __name__ == '__main__':
     A = 300
     p = 100
     # cluster = True
+    
     Objects = []
+    garch = True
     for cluster in [True, False]:
 
-        MarketObj = initialise(N_agents, p, A, C, cluster)
+        MarketObj = initialise(N_agents, p, A, C, cluster, garch)
         run_simulation(N_time, MarketObj, cluster)
         Objects.append((MarketObj, cluster))
         # if cluster:
