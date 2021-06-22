@@ -78,6 +78,7 @@ if __name__ == '__main__':
         # if cluster:
             # vis.cluster_vis(MarketObj, N_time, cluster)
     # vis.vis_vol_cluster(Objects, 0.2, 10, N_time)
-    vis.vis_price_series(Objects)
+    vis.vis_price_series(Objects, N_time)
+    vis.vis_volatility_series(Objects, N_time)
     # print(f'Number of sell orders: {len(MarketObj.sellers)}')
     # print(f'Number of buy orders: {len(MarketObj.buyers)}')

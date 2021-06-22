@@ -176,3 +176,12 @@ def vis_vol_cluster(objects, highp, window, N_time):
     plt.yscale("log")
     plt.legend()
     plt.show()
+
+def vis_volatility_series(objects, N_time):
+    x = np.linspace(0, len(objects[0][0].sigma), len(objects[0][0].sigma))
+    for object in objects:
+        vol = object[0].sigma
+        plt.plot(x, vol)
+    plt.xlabel("Time")
+    plt.ylabel("Volatility")
+    plt.show()

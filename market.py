@@ -11,6 +11,7 @@ import pandas as pd
 import matplotlib.pyplot as plt # TEMP
 
 from cluster import Cluster
+from data import calc_norm_return
 
 
 class Market():
@@ -74,17 +75,22 @@ class Market():
         """
         # Get last 20-100 data points
         price_data = pd.DataFrame(self.p[-min(len(self.p)-1, 100):])
-        returns = 100*price_data.pct_change().dropna()
+        returns = 100*calc_norm_return(price_data, False)
 
-        am = arch_model(returns, p=self.garch_param[0], q=self.garch_param[1])
-        res = am.fit()
-        forecasts = res.forecast(reindex=True)
+        am = arch_model(returns, p=self.garch_param[0], q=self.garch_param[1], rescale=False)
+        res = am.fit(update_freq=1, disp="off")
+        forecasting = res.conditional_volatility
+        # print(forecasting)
+        # forecasts = res.forecast(reindex=True)
 
-        print(forecasts.variance)
-
-        print(np.sqrt(forecasts.variance.iloc[-1][0]))
-        return np.sqrt(forecasts.variance.iloc[-1][0])
-
+        # print(forecasts.variance)
+        # print(forecasting)
+        #
+        # print(np.sqrt(forecasts.variance.iloc[-1][0]))
+        # sys.exit()
+        # return np.sqrt(forecasts.variance.iloc[-1][0])
+        # print(float(forecasting.values[-1]/(100)**2))
+        return float(forecasting.values[-1]/(100)**2)
 
     def reset_lists(self):
         """
