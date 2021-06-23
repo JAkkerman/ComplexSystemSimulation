@@ -1,5 +1,27 @@
 import pickle
 import os
+from collections import Mapping, Container
+import sys
+
+def get_size(obj, seen=None):
+    """Recursively finds size of objects"""
+    size = sys.getsizeof(obj)
+    if seen is None:
+        seen = set()
+    obj_id = id(obj)
+    if obj_id in seen:
+        return 0
+    # Important mark as seen *before* entering recursion to gracefully handle
+    # self-referential objects
+    seen.add(obj_id)
+    if isinstance(obj, dict):
+        size += sum([get_size(v, seen) for v in obj.values()])
+        size += sum([get_size(k, seen) for k in obj.keys()])
+    elif hasattr(obj, '__dict__'):
+        size += get_size(obj.__dict__, seen)
+    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
+        size += sum([get_size(i, seen) for i in obj])
+    return size
 
 def getResultsDirectoryPath(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster):
     return f'results/agents{N_agents}_time{N_time}_C{C}_A{A}_p{p}_garch{garch}_garchN{garch_n}_garchparam{garch_param[0]}{garch_param[1]}_Pa{Pa}_Pc{Pc}_cluster{cluster}'
@@ -39,3 +61,4 @@ def loadMultipleMarkets(N_agents, N_time, C, A, p, garch, garch_n, garch_param, 
         objects.append((MarketObj, cluster))
 
     return objects
+

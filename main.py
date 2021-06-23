@@ -1,14 +1,14 @@
 import numpy as np
-
-# Import classes
-import market
-import trader
-import visualization as vis
 from tqdm import tqdm
 import concurrent.futures
 import sys
+
+# Our defined modules
+import gc
+import market
+import trader
+import visualization as vis
 import management
-# from cluster import Cluster
 from data import avg_degree
 
 
@@ -70,8 +70,11 @@ def job(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list
 
             # Save the results form this run
             management.saveSingleMarket(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, i, MarketObj)
+            #print("Size:")
+            #print(management.get_size(MarketObj)) --> 80mb
 
             del MarketObj
+            gc.collect()
 
     return " Done"
 
@@ -90,7 +93,7 @@ if __name__ == '__main__':
     garch_param = [1,1]
 
     # Experiment ranges
-    Pa_list = [0.0002]#[0.00005, 0.0001, 0.0002, 0.0005]
+    Pa_list = [0.00005, 0.0001, 0.0002, 0.0005]
     Pc_list = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
     #Pa_list = [0.0002]
     #Pc_list = [0.1]
@@ -102,36 +105,18 @@ if __name__ == '__main__':
     management.makeDirectories(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster)
 
     # Do experiments for all Pa and Pc parameter combinations
-    with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=6) as executor:
         values = [executor.submit(job, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, i,) for i in range(0, N_concurrent)]
 
         #for f in concurrent.futures.as_completed(values):
         #    print(f.result())
 
     # Visualisation single model run
-    visModel = 0
-    #vis.visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster, visModel)
+    #for i in range(0, N_concurrent):
+    #    vis.visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster, i)
 
     # Visualisation all model runs of single parameter configuration
     #vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster, N_concurrent)
 
     sys.exit()
 
-
-    for seed in seeds:
-        print(f'Seed {seed}')
-        np.random.seed(seed)
-
-        # for cluster in [True, False]:
-        for cluster in [True, False]:
-
-            MarketObj = initialise(N_agents, p, A, C, cluster, garch, garch_param)
-            run_simulation(N_time, MarketObj, cluster)
-            Objects.append((MarketObj, cluster))
-        # if cluster:
-            # vis.cluster_vis(MarketObj, N_time, cluster)
-        vis.plot_lorenz_curve(MarketObj)
-    # vis.vis_vol_cluster(Objects, 0.2, 10, N_time)
-    vis.vis_price_series(Objects, N_time)
-    # print(f'Number of sell orders: {len(MarketObj.sellers)}')
-    # print(f'Number of buy orders: {len(MarketObj.buyers)}')
