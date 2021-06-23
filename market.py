@@ -15,8 +15,8 @@ from data import calc_norm_return
 
 
 class Market():
-    def __init__(self, p, cluster, garch, garch_param,
-                 T=20, k=3.5, mu=1.01, hist_vol=0.1, Pc=0.1, Pa=0.0002):
+    def __init__(self, p, cluster, garch, garch_param, Pa, Pc,
+                 T=20, k=3.5, mu=1.01, hist_vol=0.1):
         self.p = [p]
         self.cluster=cluster
         self.traders = []
@@ -75,11 +75,12 @@ class Market():
         """
         # Get last 20-100 data points
         price_data = pd.DataFrame(self.p[-min(len(self.p)-1, 100):])
-        returns = 100*price_data.pct_change().dropna()
+        # returns = 100*price_data.pct_change().dropna()
+        returns = 100*calc_norm_return(price_data, False)
 
         am = arch_model(returns, p=self.garch_param[0], q=self.garch_param[1])
-        res = am.fit()
-        print("jee")
+        res = am.fit(disp="off")
+        # print("jee")
         forecasts = res.forecast(reindex=True)
 
         print(forecasts.variance)
@@ -179,9 +180,9 @@ class Market():
         # p_diff = p_buy[:,np.newaxis] - p_sell
         # q_diff = q_buy[:,np.newaxis] - q_sell
 
-        # Only distances that are 
+        # Only distances that are
         # distances = np.sqrt(p_diff**2 + q_diff**2)
-        
+
         # distances = (distances*(p_diff>0)*(np.roll((p_diff<0), -1)))
         # distances[distances==0] = np.nan
 
@@ -200,7 +201,7 @@ class Market():
         # print(clearing_price)
         # buy_cum_quant = np.array(q_buy)[buy_price_index]
 
-        # # If we had to take a buyer lower down the line, select the new closest 
+        # # If we had to take a buyer lower down the line, select the new closest
         # sell_cum_quant = np.array(q_sell)[sell_price_index]
 
         # transaction_q = min(sell_cum_quant, buy_cum_quant)
