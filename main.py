@@ -60,6 +60,11 @@ def run_simulation(N_time, MarketObj, cluster):
 
 def job(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, i):
 
+    # Force new seed, otherwise 6 processes will use same seed 
+    #print(np.random.uniform(0, 1, 5))
+    np.random.seed()
+    #print(np.random.uniform(0, 1, 5))
+    
     # Loop over every parameter configuration
     for Pa in Pa_list:
         for Pc in Pc_list:
@@ -112,8 +117,8 @@ if __name__ == '__main__':
         #    print(f.result())
 
     # Visualisation single model run
-    #for i in range(0, N_concurrent):
-    #    vis.visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster, i)
+    for i in range(0, N_concurrent):
+        vis.visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster, i)
 
     # Visualisation all model runs of single parameter configuration
     #vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster, N_concurrent)
