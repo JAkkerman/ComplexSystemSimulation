@@ -71,6 +71,8 @@ def job(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list
             # Save the results form this run
             management.saveSingleMarket(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, i, MarketObj)
 
+            del MarketObj
+
     return " Done"
 
 if __name__ == '__main__':
@@ -88,28 +90,30 @@ if __name__ == '__main__':
     garch_param = [1,1]
 
     # Experiment ranges
-    Pa_list = [0.0002]
-    Pc_list = [0.1]
+    Pa_list = [0.0002]#[0.00005, 0.0001, 0.0002, 0.0005]
+    Pc_list = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
+    #Pa_list = [0.0002]
+    #Pc_list = [0.1]
 
     # Amount of runs per configuration
-    N_concurrent = 2
+    N_concurrent = 50
 
     # Make directories for each parameter configuration (if they don't exist yet). NB don't comment this out
     management.makeDirectories(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster)
 
     # Do experiments for all Pa and Pc parameter combinations
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        values = [executor.submit(job, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, i,) for i in range(N_concurrent)]
+    with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
+        values = [executor.submit(job, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, i,) for i in range(0, N_concurrent)]
 
-        for f in concurrent.futures.as_completed(values):
-            print(f.result())
+        #for f in concurrent.futures.as_completed(values):
+        #    print(f.result())
 
     # Visualisation single model run
     visModel = 0
-    vis.visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster, visModel)
+    #vis.visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster, visModel)
 
     # Visualisation all model runs of single parameter configuration
-    vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster, N_concurrent)
+    #vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster, N_concurrent)
 
     sys.exit()
 
