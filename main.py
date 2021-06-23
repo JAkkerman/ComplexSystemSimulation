@@ -7,6 +7,7 @@ import visualization as vis
 from tqdm import tqdm
 import concurrent.futures
 import sys
+import management
 # from cluster import Cluster
 from data import avg_degree
 
@@ -52,43 +53,24 @@ def run_simulation(N_time, MarketObj, cluster):
         # print(MarketObj.clusters)
         # vis.vis_market_cross(MarketObj)
 
-    # vis.cluster_vis(MarketObj, N_time, cluster)
-    # vis.vis_price_series(MarketObj, N_time)
-    # vis.vis_wealth_over_time(MarketObj)
+    #vis.cluster_vis(MarketObj, N_time, cluster)
+    #vis.vis_price_series(MarketObj, N_time)
+    #vis.vis_wealth_over_time(MarketObj)
+    return MarketObj
 
-def job(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc):
+def job(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, i):
 
-    Objects = []
+    # Loop over every parameter configuration
+    for Pa in Pa_list:
+        for Pc in Pc_list:
 
-    if len(Pc) == 1 and len(Pa) != 1:
-        P_list = Pa
-        Pc = Pc[0]
-        for Pa in P_list:
+            # Run single simulation for this parameter config
             cluster = True
             MarketObj = initialise(N_agents, p, A, C, cluster, garch, garch_param, Pa, Pc)
-            run_simulation(N_time, MarketObj, cluster)
-            Objects.append((MarketObj, cluster))
-
-    elif len(Pa) == 1 and len(Pc) != 1:
-        P_list = Pc
-        Pa = Pa[0]
-        for Pc in P_list:
-            cluster = True
-            MarketObj = initialise(N_agents, p, A, C, cluster, garch, garch_param, Pa, Pc)
-            run_simulation(N_time, MarketObj, cluster)
-            Objects.append((MarketObj, cluster))
-
-    else:
-        Pa = Pa[0]
-        Pc = Pc[0]
-        cluster = True
-        MarketObj = initialise(N_agents, p, A, C, cluster, garch, garch_param, Pa, Pc)
-        run_simulation(N_time, MarketObj, cluster)
-        Objects.append((MarketObj, cluster))
-
-
-
-    return Objects
+            MarketObj = run_simulation(N_time, MarketObj, cluster)
+ 
+            # Save the results form this run
+            management.saveSingleMarket(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, i, MarketObj)
 
 
 if __name__ == '__main__':
@@ -106,20 +88,21 @@ if __name__ == '__main__':
     garch_n = 4
     garch_param = [1,1]
 
-    Pa = [0.0002]
-    Pc = [0.1]
+    Pa_list = [0.0002]
+    Pc_list = [0.1]
 
-    Objects = []
+    # Make directories for each parameter configuration (if they don't exist yet)
+    # NB don't comment this out
+    management.makeDirectories(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list)
 
+    # Do experiment for all Pa and Pc parameter combinations
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        values = [executor.submit(job, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc) for _ in range(10)]
+        values = [executor.submit(job, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, i) for i in range(2)]
+    
+    # Visualisation single model run 
+    #vis.visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], 0)
 
-        for f in concurrent.futures.as_completed(values):
-            Objects += f.result()
-
-    vis.vis_price_series(Objects, N_time, N_agents)
-
-
+    # Visualisation all model runs of single parameter configuration
 
     sys.exit()
 

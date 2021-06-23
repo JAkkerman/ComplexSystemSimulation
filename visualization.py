@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from trader import Trader
 from data import calc_norm_return, create_cdf, curve_fit_log, sample_gauss, SP500_pl, vol_cluster
+import management
 
 def vis_market_cross(MarketObj):
     # buy_p = [buyer.b for buyer in MarketObj.buyers]
@@ -89,6 +90,8 @@ def vis_market_cross(MarketObj):
 
 
 def vis_price_series(objects, N_time, N_agents):
+    print("HOII")
+    print("")
 
     # plt.plot(range(len(MarketObj.p)), MarketObj.p)
     # plt.xlabel('Time')
@@ -276,3 +279,14 @@ def vis_volatility_series(objects, N_time):
     plt.xlabel("Time")
     plt.ylabel("Volatility")
     plt.show()
+
+def visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, i):
+
+    MarketObj = management.loadSingleMarket(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, i)
+    print("Loaded object, now start visualising")
+
+    # Do all possible visualisations for a single market
+    vis_wealth_over_time(MarketObj)
+    #vis_price_series([MarketObj], N_time, N_agents)
+    cluster_vis(MarketObj, N_time, True) ## TODO NB: hardcoded ivm aanname dat je params ook gewoon op 0 kan zetten en dit dus overbodig is
+    plot_lorenz_curve(MarketObj)
