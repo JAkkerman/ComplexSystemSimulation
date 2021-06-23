@@ -90,8 +90,6 @@ def vis_market_cross(MarketObj):
 
 
 def vis_price_series(objects, N_time, N_agents):
-    print("HOII")
-    print("")
 
     # plt.plot(range(len(MarketObj.p)), MarketObj.p)
     # plt.xlabel('Time')
@@ -280,13 +278,21 @@ def vis_volatility_series(objects, N_time):
     plt.ylabel("Volatility")
     plt.show()
 
-def visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, i):
+def visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, i):
 
-    MarketObj = management.loadSingleMarket(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, i)
+    MarketObj = management.loadSingleMarket(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, i)
     print("Loaded object, now start visualising")
 
     # Do all possible visualisations for a single market
     vis_wealth_over_time(MarketObj)
     #vis_price_series([MarketObj], N_time, N_agents)
-    cluster_vis(MarketObj, N_time, True) ## TODO NB: hardcoded ivm aanname dat je params ook gewoon op 0 kan zetten en dit dus overbodig is
+    cluster_vis(MarketObj, N_time, cluster) 
     plot_lorenz_curve(MarketObj)
+
+def visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, N):
+
+    ### NB TODO doesn't work yet as price series function is getting fixed. Probably need to change this l;ater
+    objects = management.loadMultipleMarkets(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, N)
+    print("Loaded objects, now start visualising")
+
+    vis_price_series(objects, N_time, N_agents)
