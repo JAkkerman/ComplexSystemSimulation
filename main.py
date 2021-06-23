@@ -117,7 +117,10 @@ if __name__ == '__main__':
         for f in concurrent.futures.as_completed(values):
             Objects += f.result()
 
-    print(Objects)
+    vis.vis_price_series(Objects, N_time, N_agents)
+
+
+
     sys.exit()
 
 

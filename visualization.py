@@ -88,38 +88,101 @@ def vis_market_cross(MarketObj):
     ax.plot(x2, y2, color='darkgreen', marker='^')
 
 
-def vis_price_series(objects, N_time):
+def vis_price_series(objects, N_time, N_agents):
 
+    # plt.plot(range(len(MarketObj.p)), MarketObj.p)
+    # plt.xlabel('Time')
+    # plt.ylabel('Price')
+    # plt.show()
+    plt.figure(dpi=450)
+
+    cdf = np.zeros((2, 50))
+    bins_count = np.zeros((2, 51))
 
     for i in range(len(objects)):
-
-        plt.plot(range(len(objects[i][0].p)), objects[i][0].p)
-        plt.xlabel('Time')
-        plt.ylabel('Price')
-        plt.show()
-
         df = pd.DataFrame(objects[i][0].p)
         df = calc_norm_return(df, True)
-        cdf, bins_count = create_cdf(df)
-        popt, pcov, real = curve_fit_log(bins_count[1:], cdf)
+        #print(len(create_cdf(df)[0]))
+        #cdf = np.zeros((2, len(create_cdf(df)[0])))
+        #bins_count = np.zeros((2, len(create_cdf(df)[1])))
+
+        cdf[i,:], bins_count[i,:] = create_cdf(df)
+        popt, pcov, real = curve_fit_log(bins_count[i,1:], cdf[i])
         if objects[i][1]:
             label = f"Herd model $\\alpha$ = {round(popt[1],2)}"
         else:
             label = f"Model $\\alpha$ = {round(popt[1],2)}"
         # plt.plot(bins_count[1:], real, label=label)
-        plt.plot(bins_count[1:], cdf, label=label)
+        plt.scatter(bins_count[i,1:], cdf[i], label=label, marker='o')
 
     gaus_bins_count, gaus_cdf = sample_gauss(N_time)
     SP500_bins_count, SP500_cdf = SP500_pl()
     # gaus_bins_count, gaus_real = sample_gauss()
 
-    plt.plot(gaus_bins_count[1:], gaus_cdf, label="Gaussian distribution")
-    plt.plot(SP500_bins_count[1:], SP500_cdf, label="SP500")
+    model_array = np.array((cdf[1,:], bins_count[1,1:]))
+    herd_model_array = np.array((cdf[0,:], bins_count[0,1:]))
+
+    # Power law fits
+    # Regular model
+    fit_comparison_array = np.zeros((N_agents*3, 5))
+    j = 1
+    for i in range(1, int(N_agents*2)):
+        x_values = np.log10(np.delete(model_array[1], np.where(model_array[1] < j)))
+        y_values = np.log10(np.delete(model_array[0], np.where(model_array[1] < j)))
+        fit_comparison_array[i-1, 0] = x_values[0] # starting x_value for fit
+        fit_comparison_array[i-1, 1] = x_values[-1] # final x_value for fit
+        fit_comparison_array[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1) # fit line
+        correlation_matrix = np.corrcoef(x_values, y_values)
+        correlation_xy = correlation_matrix[0,1]
+        rsquared = correlation_xy**2
+        fit_comparison_array[i-1, 4] = correlation_xy**2 # add R^2 value to array
+        j = j + 0.01
+
+        #print(f'Normalized returns >= {x_values[0]}, R-squared value: {rsquared}, power law fit slope: {fit_comparison_array[i-1, 3]}')
+
+    print(f'Slope for best fit regular model: {fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 3]}')
+    starting_x = fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 0]
+    final_x = fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 1]
+    intercept = fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 2]
+    slope = fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 3]
+
+    # Herd model
+    fit_comparison_array_herd = np.zeros((N_agents*3, 5))
+    j = 1
+    for i in range(1, int(N_agents*2)):
+        x_values = np.log10(np.delete(herd_model_array[1], np.where(herd_model_array[1] < j)))
+        y_values = np.log10(np.delete(herd_model_array[0], np.where(herd_model_array[1] < j)))
+        fit_comparison_array_herd[i-1, 0] = x_values[0] # starting x_value for fit
+        fit_comparison_array_herd[i-1, 1] = x_values[-1] # final x_value for fit
+        fit_comparison_array_herd[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1) # fit line
+        correlation_matrix = np.corrcoef(x_values, y_values)
+        correlation_xy = correlation_matrix[0,1]
+        rsquared = correlation_xy**2
+        fit_comparison_array_herd[i-1, 4] = correlation_xy**2 # add R^2 value to array
+        j = j + 0.01
+
+        #print(f'Normalized returns >= {x_values[0]}, R-squared value: {rsquared}, power law fit slope: {fit_comparison_array_herd[i-1, 3]}')
+
+    print(f'Slope for best fit herd model: {fit_comparison_array_herd[np.argmax(fit_comparison_array_herd[:,4]), 3]}')
+    starting_x_herd = fit_comparison_array_herd[np.argmax(fit_comparison_array_herd[:,4]), 0]
+    final_x_herd = fit_comparison_array_herd[np.argmax(fit_comparison_array_herd[:,4]), 1]
+    intercept_herd = fit_comparison_array_herd[np.argmax(fit_comparison_array_herd[:,4]), 2]
+    slope_herd = fit_comparison_array_herd[np.argmax(fit_comparison_array_herd[:,4]), 3]
+
+
+    # Plotting
+    plt.scatter(gaus_bins_count[1:], gaus_cdf, label="Gaussian distribution", marker='.')
+    plt.scatter(SP500_bins_count[1:], SP500_cdf, label="S&P 500", marker='.')
+    plt.plot([10**starting_x_herd, 10**final_x_herd], [10**(intercept_herd + slope_herd*starting_x_herd), 10**(intercept_herd + slope_herd*final_x_herd)],
+             label=f'Herd model fit, slope = {slope_herd:.3f}', color='black', linestyle='--') # plot herd model power law fit
+    plt.plot([10**starting_x, 10**final_x], [10**(intercept + slope*starting_x), 10**(intercept + slope*final_x)],
+             label=f'Model fit, slope = {slope:.3f}', color='black') # plot regular model power law fit
     plt.yscale('log')
     plt.xscale('log')
     plt.legend()
     plt.xlabel("Normalized returns")
     plt.ylabel("Cumulative distribution")
+    plt.title(f'{N_agents} Traders, {N_time} Timesteps')
     plt.show()
 
 
@@ -193,7 +256,7 @@ def plot_lorenz_curve(MarketObj):
         cum_wealth = np.cumsum(sorted_wealth)
 
         X = np.linspace(0, 1, len(MarketObj.traders))
-        G = np.abs(1 - sum([(X[i+1]-X[i])*(cum_wealth[i+1]/sum(sorted_wealth)+cum_wealth[i]/sum(sorted_wealth)) 
+        G = np.abs(1 - sum([(X[i+1]-X[i])*(cum_wealth[i+1]/sum(sorted_wealth)+cum_wealth[i]/sum(sorted_wealth))
                             for i in range(len(MarketObj.traders)-1)]))
 
         plt.plot(np.linspace(0,1,100), cum_wealth/sum(sorted_wealth), label=f't={t}, Gini={round(G,2)}')
@@ -204,7 +267,7 @@ def plot_lorenz_curve(MarketObj):
     plt.ylabel('Cumulative share of income')
     plt.legend()
 
-    
+
 def vis_volatility_series(objects, N_time):
     x = np.linspace(0, len(objects[0][0].sigma), len(objects[0][0].sigma))
     for object in objects:
