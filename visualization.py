@@ -291,8 +291,10 @@ def visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garc
 
 def visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, N):
 
-    ### NB TODO doesn't work yet as price series function is getting fixed. Probably need to change this l;ater
     objects = management.loadMultipleMarkets(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, N)
     print("Loaded objects, now start visualising")
+
+    # TODO change this later
+    objects = [(obj, True) for obj in objects]
 
     vis_price_series(objects, N_time, N_agents)

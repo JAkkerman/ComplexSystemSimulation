@@ -74,12 +74,8 @@ def job(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list
 if __name__ == '__main__':
 
     N_time = 10000
-    cluster = True
-    N_concurrent = 2
-
-    seeds = [42, 101, 666, 6666, 9000, 12121, 80085, 12345]
-
     N_agents = 100
+    cluster = True
     C = 30000
     A = 300
     p = 100
@@ -93,19 +89,22 @@ if __name__ == '__main__':
     Pa_list = [0.0002]
     Pc_list = [0.1]
 
-    # Make directories for each parameter configuration (if they don't exist yet)
-    # NB don't comment this out
+    # Amount of runs per configuration
+    N_concurrent = 2
+
+    # Make directories for each parameter configuration (if they don't exist yet). NB don't comment this out
     management.makeDirectories(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster)
 
-    # Do experiment for all Pa and Pc parameter combinations
-    #with concurrent.futures.ProcessPoolExecutor() as executor:
-    #    values = [executor.submit(job, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, i,) for i in range(N_concurrent)]
+    # Do experiments for all Pa and Pc parameter combinations
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        values = [executor.submit(job, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, i,) for i in range(N_concurrent)]
     
     # Visualisation single model run 
-    vis.visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster,0)
+    visModel = 0
+    vis.visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster, visModel)
 
     # Visualisation all model runs of single parameter configuration
-    #vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster, N_concurrent)
+    vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster, N_concurrent)
 
     sys.exit()
 
