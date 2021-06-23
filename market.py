@@ -260,7 +260,7 @@ class Market():
         bought_q = transaction_q
         for buyer in true_buyers:
             if buyer != 0:
-                if buyer.a_s < bought_q:
+                if buyer.a_b < bought_q:
                     buyer.C += [buyer.C[-1] - buyer.a_b*self.p[-1]]
                     buyer.A += [buyer.A[-1] + buyer.a_b]
                     bought_q -= buyer.a_b
