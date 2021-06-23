@@ -413,7 +413,7 @@ def vis_volatility_series(objects, N_time):
 def visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, i):
 
     MarketObj = management.loadSingleMarket(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, i)
-    print("Loaded object, now start visualising")
+    print(f'Loaded object, now start visualising for {i}')
 
     # Do all possible visualisations for a single market
     vis_wealth_over_time(MarketObj)
