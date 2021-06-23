@@ -83,10 +83,10 @@ class Market():
         # print("jee")
         forecasts = res.forecast(reindex=True)
 
-        print(forecasts.variance)
+        # print(forecasts.variance)
 
-        print(np.sqrt(forecasts.variance.iloc[-1][0]))
-        return np.sqrt(forecasts.variance.iloc[-1][0])
+        # print(np.sqrt(forecasts.variance.iloc[-1][0]))
+        return np.sqrt(forecasts.variance.iloc[-1][0])/100**2
 
 
     def reset_lists(self):
