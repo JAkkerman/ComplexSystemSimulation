@@ -83,10 +83,10 @@ class Market():
         # print("jee")
         forecasts = res.forecast(reindex=True)
 
-        print(forecasts.variance)
+        # print(forecasts.variance)
 
-        print(np.sqrt(forecasts.variance.iloc[-1][0]))
-        return np.sqrt(forecasts.variance.iloc[-1][0])
+        # print(np.sqrt(forecasts.variance.iloc[-1][0]))
+        return np.sqrt(forecasts.variance.iloc[-1][0])/100**2
 
 
     def reset_lists(self):
@@ -139,7 +139,7 @@ class Market():
         """
 
         # Randomly choose two individuals each time step and create cluster
-        for i in range(2):
+        for i in range(int(self.Pa*len(self.traders)**2)):
             pair  = np.random.choice(self.traders, size=2, replace=False)
             trader1 = pair[0]
             trader2 = pair[1]
