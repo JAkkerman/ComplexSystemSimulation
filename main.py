@@ -86,7 +86,7 @@ def job(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list
 if __name__ == '__main__':
 
     N_time = 10002
-    N_agents = 100
+    N_agents = 400
     cluster = True
     C = 30000
     A = 300
@@ -117,12 +117,12 @@ if __name__ == '__main__':
     management.makeDirectories(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster)
 
     # Do experiments for all Pa and Pc parameter combinations
-    # with concurrent.futures.ProcessPoolExecutor(max_workers=6) as executor:
-    #    values = [executor.submit(job, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, i,) for i in range(0, N_concurrent)]
+    with concurrent.futures.ProcessPoolExecutor(max_workers=6) as executor:
+       values = [executor.submit(job, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, i,) for i in range(0, N_concurrent)]
 
     # Visualisation single model run
-    for i in range(0,  N_concurrent):
-       vis.visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster, i)
+    #for i in range(0,  N_concurrent):
+    #   vis.visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster, i)
 
     # FOR VIS OF LORENZ, CAN BE DELETED LATER
     # for cluster in [True, False]:
