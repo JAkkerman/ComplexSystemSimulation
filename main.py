@@ -60,11 +60,11 @@ def run_simulation(N_time, MarketObj, cluster):
 
 def job(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, i):
 
-    # Force new seed, otherwise 6 processes will use same seed 
+    # Force new seed, otherwise 6 processes will use same seed
     #print(np.random.uniform(0, 1, 5))
     np.random.seed()
     #print(np.random.uniform(0, 1, 5))
-    
+
     # Loop over every parameter configuration
     for Pa in Pa_list:
         for Pc in Pc_list:
@@ -102,7 +102,7 @@ if __name__ == '__main__':
     Pc_list = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
 
     # Amount of runs per configuration
-    N_concurrent = 50
+    N_concurrent = 2
 
     # Make directories for each parameter configuration (if they don't exist yet). NB don't comment this out
     management.makeDirectories(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster)
@@ -119,9 +119,9 @@ if __name__ == '__main__':
     #    vis.visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[1], Pc_list[1], cluster, i)
 
     # Visualisation all model runs of single parameter configuration
-    for Pa in Pa_list:
-        for Pc in Pc_list:
-            vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, N_concurrent)
+    vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster, N_concurrent)
+    # for Pa in Pa_list:
+    #     for Pc in Pc_list:
+    #         vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, N_concurrent)
 
     sys.exit()
-
