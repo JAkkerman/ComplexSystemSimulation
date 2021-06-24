@@ -479,10 +479,10 @@ section {
 # refresher
 --------------------------------------------------------------*/
 /* Zelf toegevoegd */
-.refresher {
+/* .refresher {
   min-height: 50%;
   height: 100%; 
-}
+} */
 
 .refresher .content {
   padding-left: 30px;
@@ -685,6 +685,27 @@ section {
   background: #4eb478;
   border: 2px solid #4eb478;
 }
+
+.research2-btn {
+  font-family: "Raleway", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 1px;
+  display: inline-block;
+  padding: 8px 28px;
+  border-radius: 5px;
+  transition: 0.3s;
+  margin-top: 10px;
+  border: 2px solid #000000;
+  color: #000000;
+}
+
+.research2-btn:hover {
+  background: #4eb478;
+  border: 2px solid #4eb478;
+  color: #fff;
+}
+
 
 /*--------------------------------------------------------------
 # modelExpl

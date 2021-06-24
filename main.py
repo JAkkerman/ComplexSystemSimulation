@@ -180,4 +180,3 @@ if __name__ == '__main__':
     #         vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, N_concurrent)
 
     # sys.exit()
-
