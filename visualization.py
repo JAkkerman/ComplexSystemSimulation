@@ -89,7 +89,7 @@ def vis_market_cross(MarketObj):
     ax.plot(x2, y2, color='darkgreen', marker='^')
 
 
-def vis_price_series(objects, N_time, N_agents):
+def vis_price_series(objects, N_time, N_agents, image_dir = None):
 
     # plt.plot(range(len(MarketObj.p)), MarketObj.p)
     # plt.xlabel('Time')
@@ -287,19 +287,26 @@ def vis_price_series(objects, N_time, N_agents):
     plt.xlabel("Normalized returns")
     plt.ylabel("Cumulative distribution")
     plt.title(f'{N_agents} Traders, {N_time} Timesteps')
-    plt.show()
+
+    if image_dir != None:
+        plt.savefig(image_dir)
+    else:
+        plt.show()
 
 
-def vis_wealth_over_time(MarketObj):
+def vis_wealth_over_time(MarketObj, image_dir = None):
 
     fig, [ax1, ax2] = plt.subplots(1,2, figsize=(8,4))
     for TraderObj in MarketObj.traders:
         ax1.plot(range(len(TraderObj.C)), TraderObj.C, alpha=0.2)
     ax2.hist([TraderObj.C[-1] for TraderObj in MarketObj.traders])
 
-    plt.show()
+    if image_dir != None:
+        plt.savefig(image_dir)
+    else:
+        plt.show()
 
-def cluster_vis(MarketObj, t, cluster):
+def cluster_vis(MarketObj, t, cluster, image_dir = None):
     if cluster:
 
         ret = calc_norm_return(pd.DataFrame(MarketObj.p), False)
@@ -313,9 +320,13 @@ def cluster_vis(MarketObj, t, cluster):
         plt.xlabel("Time")
         # plt.ylabel("Normalized average network degree")
         plt.legend()
-        plt.show()
+        
+        if image_dir != None:
+            plt.savefig(image_dir)
+        else:
+            plt.show()
 
-def vis_vol_cluster(objects, highp, window, N_time):
+def vis_vol_cluster(objects, highp, window, N_time, image_dir = None):
 
     cluster_gaus, cluster_sp500 = vol_cluster(None, highp, window, N_time, True)
     count_gaus, bins_count_gaus = np.histogram(cluster_gaus, bins=[i for i in range(window+1)])
@@ -372,10 +383,13 @@ def vis_vol_cluster(objects, highp, window, N_time):
     plt.title("Volatility clustering")
     plt.yscale("log")
     plt.legend()
-    plt.show()
+    if image_dir != None:
+        plt.savefig(image_dir)
+    else:
+        plt.show()
 
 
-def plot_lorenz_curve(MarketObj):
+def plot_lorenz_curve(MarketObj, image_dir=None):
     """
     Plots the Lorenz curve
     """
@@ -384,6 +398,8 @@ def plot_lorenz_curve(MarketObj):
     fig = plt.figure(figsize=(6,6))
 
     for t in all_t:
+        print(len(MarketObj.p))
+
         sorted_wealth = sorted(MarketObj.traders, key=lambda x: x.A[t-1]*MarketObj.p[t-1] + x.C[t-1])
         sorted_wealth = [i.A[t-1]*MarketObj.p[t-1] + i.C[t-1] for i in sorted_wealth]
         cum_wealth = np.cumsum(sorted_wealth)
@@ -399,6 +415,10 @@ def plot_lorenz_curve(MarketObj):
     plt.xlabel('Cumulative share of agents')
     plt.ylabel('Cumulative share of income')
     plt.legend()
+    if image_dir != None:
+        plt.savefig(image_dir)
+    else:
+        plt.show()
 
 
 def vis_volatility_series(objects, N_time):
@@ -415,19 +435,22 @@ def visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garc
     MarketObj = management.loadSingleMarket(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, i)
     print(f'Loaded object, now start visualising for {i}')
 
+    # Image directory
+    image_dir = 'images/Nagents{N_agents}_Pa{Pa}_Pc{Pc}_i{i}'
+
     # Do all possible visualisations for a single market
-    vis_wealth_over_time(MarketObj)
-    #vis_price_series([MarketObj], N_time, N_agents)
-    # cluster_vis(MarketObj, N_time, cluster)
-    plot_lorenz_curve(MarketObj)
+    vis_wealth_over_time(MarketObj, image_dir)
+    #vis_price_series([MarketObj], N_time, N_agents, image_dir)
+    # cluster_vis(MarketObj, N_time, cluster, image_dir)
+    plot_lorenz_curve(MarketObj, image_dir)
 
 def visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, N):
 
     objects = management.loadMultipleMarkets(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, N)
     print("Loaded objects, now start visualising")
 
-    # TODO change this later
-    # objects = [(obj, True) for obj in objects]
+    # Image directory
+    image_dir = 'images/Nagents{N_agents}_Pa{Pa}_Pc{Pc}'
 
-    vis_price_series(objects, N_time, N_agents)
-    vis_vol_cluster(objects, 0.2, 10, N_time)
+    vis_price_series(objects, N_time, N_agents, image_dir)
+    vis_vol_cluster(objects, 0.2, 10, N_time, image_dir)
