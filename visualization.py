@@ -93,10 +93,10 @@ def vis_price_series(objects, N_time):
 
     for i in range(len(objects)):
 
-        plt.plot(range(len(objects[i][0].p)), objects[i][0].p)
-        plt.xlabel('Time')
-        plt.ylabel('Price')
-        plt.show()
+        # plt.plot(range(len(objects[i][0].p)), objects[i][0].p)
+        # plt.xlabel('Time')
+        # plt.ylabel('Price')
+        # plt.show()
 
         df = pd.DataFrame(objects[i][0].p)
         df = calc_norm_return(df, True)
@@ -183,26 +183,45 @@ def plot_lorenz_curve(MarketObj):
     """
     Plots the Lorenz curve
     """
-    all_t = [1000, 5000, 10000]
+    N_time = len(MarketObj.p)
+    all_t = [int(0.1*N_time), int(0.5*N_time), N_time]
 
-    fig = plt.figure(figsize=(6,6))
+    fig, [ax1, ax2] = plt.subplots(1, 2, figsize=(12,6))
 
     for t in all_t:
+        print(t)
+        # Compute Lorenz curve and Gini coefficient
         sorted_wealth = sorted(MarketObj.traders, key=lambda x: x.A[t-1]*MarketObj.p[t-1] + x.C[t-1])
         sorted_wealth = [i.A[t-1]*MarketObj.p[t-1] + i.C[t-1] for i in sorted_wealth]
         cum_wealth = np.cumsum(sorted_wealth)
+
+        print(cum_wealth)
 
         X = np.linspace(0, 1, len(MarketObj.traders))
         G = np.abs(1 - sum([(X[i+1]-X[i])*(cum_wealth[i+1]/sum(sorted_wealth)+cum_wealth[i]/sum(sorted_wealth)) 
                             for i in range(len(MarketObj.traders)-1)]))
 
-        plt.plot(np.linspace(0,1,100), cum_wealth/sum(sorted_wealth), label=f't={t}, Gini={round(G,2)}')
+        ax1.plot(np.linspace(0,1,100), cum_wealth/sum(sorted_wealth), label=f't={t}, Gini={round(G,2)}')
 
-    plt.plot([0,1], [0,1], linestyle='--', color='black')
-    plt.title(f'Lorenz curve')
-    plt.xlabel('Cumulative share of agents')
-    plt.ylabel('Cumulative share of income')
-    plt.legend()
+        # Determine distribution of wealth
+        df = pd.DataFrame(sorted_wealth)
+        cdf, bins_count = create_cdf(df)
+        ax2.plot(bins_count[1:], cdf, label=f't={t}')
+
+    ax1.plot([0,1], [0,1], linestyle='--', color='black')
+    ax1.set_title(f'Lorenz curve')
+    ax1.set_xlabel('Cumulative share of agents')
+    ax1.set_ylabel('Cumulative share of income')
+    ax1.legend()
+
+    ax2.set_title('Wealth distribution')
+    ax2.set_ylabel('Frequency')
+    ax2.set_xlabel('Magnitude of wealth')
+    ax2.set_xscale('log')
+    ax2.set_yscale('log')
+    ax2.legend()
+
+    plt.show()
 
     
 def vis_volatility_series(objects, N_time):

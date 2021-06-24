@@ -111,30 +111,30 @@ if __name__ == '__main__':
 
     Objects = []
 
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        values = [executor.submit(job, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc) for _ in range(10)]
+    # with concurrent.futures.ProcessPoolExecutor() as executor:
+    #     values = [executor.submit(job, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc) for _ in range(10)]
 
-        for f in concurrent.futures.as_completed(values):
-            Objects += f.result()
+    #     for f in concurrent.futures.as_completed(values):
+    #         Objects += f.result()
 
-    print(Objects)
-    sys.exit()
+    # print(Objects)
+    # sys.exit()
 
 
-    for seed in seeds:
-        print(f'Seed {seed}')
-        np.random.seed(seed)
+    # for seed in seeds:
+    #     print(f'Seed {seed}')
+    #     np.random.seed(seed)
 
-        # for cluster in [True, False]:
-        for cluster in [True, False]:
+    # for cluster in [True, False]:
+    for cluster in [True]:
 
-            MarketObj = initialise(N_agents, p, A, C, cluster, garch, garch_param)
-            run_simulation(N_time, MarketObj, cluster)
-            Objects.append((MarketObj, cluster))
-        # if cluster:
-            # vis.cluster_vis(MarketObj, N_time, cluster)
-        vis.plot_lorenz_curve(MarketObj)
+        MarketObj = initialise(N_agents, p, A, C, cluster, garch, garch_param, Pa[0], Pc[0])
+        run_simulation(N_time, MarketObj, cluster)
+        Objects.append((MarketObj, cluster))
+    # if cluster:
+        # vis.cluster_vis(MarketObj, N_time, cluster)
+    vis.plot_lorenz_curve(MarketObj)
     # vis.vis_vol_cluster(Objects, 0.2, 10, N_time)
-    vis.vis_price_series(Objects, N_time)
+    # vis.vis_price_series(Objects, N_time)
     # print(f'Number of sell orders: {len(MarketObj.sellers)}')
     # print(f'Number of buy orders: {len(MarketObj.buyers)}')

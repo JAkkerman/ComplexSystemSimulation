@@ -260,7 +260,7 @@ class Market():
         bought_q = transaction_q
         for buyer in true_buyers:
             if buyer != 0:
-                if buyer.a_s < bought_q:
+                if buyer.a_b < bought_q:
                     buyer.C += [buyer.C[-1] - buyer.a_b*self.p[-1]]
                     buyer.A += [buyer.A[-1] + buyer.a_b]
                     bought_q -= buyer.a_b
@@ -307,7 +307,7 @@ class Market():
         # plt.legend()
         # plt.show()
 
-        if q_intersection[0] <= 0:
+        if q_intersection[0] <= 0 or p_intersection <= 0:
             print('q: ', q_intersection[0], 'p: ', p_intersection)
 
             return None
