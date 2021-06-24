@@ -98,8 +98,10 @@ if __name__ == '__main__':
     garch_param = [1,1]
 
     # Experiment ranges
-    Pa_list = [0.0001, 0.0002, 0.0005]
+    # Pa_list = [0.0001, 0.0002, 0.0005]
+    Pa_list = [0.0002]
     Pc_list = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
+    N_agents = [100]
 
     # Amount of runs per configuration
     N_concurrent = 2
@@ -119,7 +121,7 @@ if __name__ == '__main__':
     #    vis.visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[1], Pc_list[1], cluster, i)
 
     # Visualisation all model runs of single parameter configuration
-    vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[0], Pc_list[0], cluster, N_concurrent)
+    vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, N_concurrent)
     # for Pa in Pa_list:
     #     for Pc in Pc_list:
     #         vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, N_concurrent)

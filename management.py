@@ -58,7 +58,6 @@ def loadMultipleMarkets(N_agents, N_time, C, A, p, garch, garch_n, garch_param, 
     objects = []
     for i in range(0, N):
         MarketObj = loadSingleMarket(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, i)
-        objects.append((MarketObj, cluster))
+        objects.append((MarketObj, [cluster, N_agents, Pa, Pc]))
 
     return objects
-
