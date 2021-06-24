@@ -6,22 +6,31 @@ from data import calc_norm_return, create_cdf, curve_fit_log, sample_gauss, SP50
 import management
 from scipy.optimize import curve_fit
 
-def vis_market_cross(MarketObj):
+def vis_market_cross(MarketObj, transaction_q):
     # buy_p = [buyer.b for buyer in MarketObj.buyers]
     # buy_q = [buyer.a_b for buyer in MarketObj.buyers]
     # sell_p = [seller.s for seller in MarketObj.sellers]
     # sell_q = [seller.a_s for seller in MarketObj.sellers]
 
-    sorted_sell = sorted(MarketObj.sellers, key=lambda x: x.s_i)
-    sorted_buy = sorted(MarketObj.buyers, key=lambda x: x.b_i)[::-1]
+    sorted_sell = sorted(MarketObj.sellers, key=lambda x: x.s_i)[10:-10]
+    sorted_buy = sorted(MarketObj.buyers, key=lambda x: x.b_i)[::-1][10:-10]
+
+    print(sorted_sell)
+    print(sorted_buy)
 
     p_sell = [i.s_i for i in sorted_sell] # sorted list of sell price limits
     q_sell = np.cumsum([i.a_s for i in sorted_sell])
     p_buy = [i.b_i for i in sorted_buy] # sorted list of buy price limits
     q_buy = np.cumsum([i.a_b for i in sorted_buy])
 
+    demand = np.polyfit(q_buy, p_buy, deg=1)
+    supply = np.polyfit(q_sell, p_sell, deg=1)
+
+    demand = np.poly1d(demand)
+    supply = np.poly1d(supply)
+
     #sets = [[p_sell, q_sell], [p_buy, q_buy]]
-    #p_clearing = Intersection(sets)
+    # p_clearing = Intersection(sets)
     #print(f'Intersection: {p_clearing}')
     #pprint(vars(p_clearing))
 
@@ -63,31 +72,38 @@ def vis_market_cross(MarketObj):
     # plt.legend(loc='best')
     # plt.show()
 
+    X = np.arange(np.average(q_sell) - 2000, np.average(q_sell) + 2000)
+
     plt.figure()
-    plt.scatter(combined_sell[1], combined_sell[0], label='Sell')
-    plt.scatter(combined_buy[1],combined_buy[0], label='Buy')
+    plt.scatter(q_sell, p_sell, label='Sell')
+    plt.plot(X, supply(X))
+    plt.scatter(q_buy, p_buy, label='Buy')
+    plt.plot(X, demand(X))
+    # plt.scatter(transaction_q, MarketObj.p[-1], color='red', alpha=0.2)
     plt.ylabel('Price ($)')
     plt.xlabel('Cumulative Quantity of Stock')
     plt.legend(loc='best')
+    plt.xlabel('Quantity')
+    plt.ylabel('Price')
     plt.show()
 
-    import sys
+    # import sys
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111)
 
-    # x1 = [1,2,3,4,5,6,7,8]
-    # y1 = [20,100,50,120,55,240,50,25]
-    # x2 = [3,4,5,6,7,8,9]
-    # y2 = [25,200,14,67,88,44,120]
+    # # x1 = [1,2,3,4,5,6,7,8]
+    # # y1 = [20,100,50,120,55,240,50,25]
+    # # x2 = [3,4,5,6,7,8,9]
+    # # y2 = [25,200,14,67,88,44,120]
 
-    x1=list(combined_buy[1])
-    y1=list(combined_buy[0])
-    x2=list(combined_sell[1])
-    y2=list(combined_sell[0])
+    # x1=list(combined_buy[1])
+    # y1=list(combined_buy[0])
+    # x2=list(combined_sell[1])
+    # y2=list(combined_sell[0])
 
-    ax.plot(x1, y1, color='lightblue',linewidth=3, marker='s')
-    ax.plot(x2, y2, color='darkgreen', marker='^')
+    # ax.plot(x1, y1, color='lightblue',linewidth=3, marker='s')
+    # ax.plot(x2, y2, color='darkgreen', marker='^')
 
 
 def vis_price_series(objects, N_time, N_agents, image_dir = None):
@@ -421,6 +437,33 @@ def plot_wealth_dist(MarketObj):
     cdf, bins_count = create_cdf(df)
 
     # Fit power law
+    model_array = np.array((cdf, bins_count[1:]))
+    fit_comparison_array = np.zeros((len(bins_count), 5))
+
+    best_fit_array = np.zeros(5)
+
+    for i in range(1, len(bins_count)-1):
+
+        x_values = np.log10(model_array[1,i:])
+        y_values = np.log10(model_array[0,i:])
+
+        fit_comparison_array[i-1, 0] = x_values[0] # starting x_value for fit
+        fit_comparison_array[i-1, 1] = x_values[-1] # final x_value for fit
+        fit_comparison_array[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1) # fit line
+        correlation_matrix = np.corrcoef(x_values, y_values)
+        correlation_xy = correlation_matrix[0,1]
+        rsquared = correlation_xy**2
+        fit_comparison_array[i-1, 4] = correlation_xy**2 # add R^2 value to array
+
+    best_fit_array[0] = fit_comparison_array[np.nanargmax(fit_comparison_array[:,4]), 0] # starting x herd
+    best_fit_array[1] = fit_comparison_array[np.nanargmax(fit_comparison_array[:,4]), 1] # final x herd
+    best_fit_array[2] = fit_comparison_array[np.nanargmax(fit_comparison_array[:,4]), 2] # intercept herd
+    best_fit_array[3] = fit_comparison_array[np.nanargmax(fit_comparison_array[:,4]), 3] # slope herd
+
+    plt.plot([10**best_fit_array[0], 10**best_fit_array[1]], 
+                [10**(best_fit_array[2]+best_fit_array[3]*best_fit_array[0]), 
+                10**(best_fit_array[2]+best_fit_array[3]*best_fit_array[1])], 
+                color='black', linestyle='--', label=f'Model fit, slope={round(best_fit_array[3],2)}')
 
     plt.scatter(bins_count[1:], cdf, s=6)
     plt.title('Wealth distribution after 10000 steps')
@@ -432,26 +475,37 @@ def plot_wealth_dist(MarketObj):
 
 
 
-def plot_lorenz_curve(MarketObj, image_dir=None):
+def plot_lorenz_curve(objects, image_dir=None):
     """
     Plots the Lorenz curve
     """
-    N_time = len(MarketObj.p)
-    # all_t = [int(0.1*N_time), int(0.5*N_time), N_time]
-    all_t = [1000, 5000, 10000]
-
     fig, [ax1, ax2] = plt.subplots(1, 2, figsize=(10,5))
 
+    all_t = [1000, 5000, 10000]
+
+    all_sorted_wealth = {t:[] for t in all_t}
+    all_cum_wealth = {t:[] for t in all_t}
+
+    
+    # N_time = len(MarketObj[0].p)
+    # all_t = [int(0.1*N_time), int(0.5*N_time), N_time]
+    
+
     for t in all_t:
-        print(t)
-        # Compute Lorenz curve and Gini coefficient
-        print(len(MarketObj.p))
+        for MarketObj in objects:
+            # Compute Lorenz curve and Gini coefficient
+            sorted_wealth = sorted(MarketObj.traders, key=lambda x: x.A[t-1]*MarketObj.p[t-1] + x.C[t-1])
+            sorted_wealth = [i.A[t-1]*MarketObj.p[t-1] + i.C[t-1] for i in sorted_wealth]
+            cum_wealth = np.cumsum(sorted_wealth)
 
-        sorted_wealth = sorted(MarketObj.traders, key=lambda x: x.A[t-1]*MarketObj.p[t-1] + x.C[t-1])
-        sorted_wealth = [i.A[t-1]*MarketObj.p[t-1] + i.C[t-1] for i in sorted_wealth]
-        cum_wealth = np.cumsum(sorted_wealth)
+            all_sorted_wealth[t] += [sorted_wealth]
+            all_cum_wealth[t] += [cum_wealth]
 
-        print(cum_wealth)
+        sorted_wealth = np.average(all_sorted_wealth[t], axis=0)
+        cum_wealth = np.average(all_cum_wealth[t], axis=0)
+
+        # print(sorted_wealth)
+        # print(cum_wealth)
 
         X = np.linspace(0, 1, len(MarketObj.traders))
         G = np.abs(1 - sum([(X[i+1]-X[i])*(cum_wealth[i+1]/sum(sorted_wealth)+cum_wealth[i]/sum(sorted_wealth))
@@ -462,6 +516,46 @@ def plot_lorenz_curve(MarketObj, image_dir=None):
         # Determine distribution of wealth
         df = pd.DataFrame(sorted_wealth)
         cdf, bins_count = create_cdf(df)
+
+        model_array = np.array((cdf, bins_count[1:]))
+        fit_comparison_array = np.zeros((len(bins_count), 5))
+
+        best_fit_array = np.zeros(5)
+
+        # print(len(cdf), len(bins_count))
+
+        j = 0
+
+        for i in range(1, len(bins_count)-1):
+
+            # x_values = np.log10(np.delete(model_array[1], np.where(model_array[1] < j)))
+            # y_values = np.log10(np.delete(model_array[0], np.where(model_array[1] < j)))
+            x_values = np.log10(model_array[1,i:])
+            y_values = np.log10(model_array[0,i:])
+
+            # print('y0', y_values[0])
+
+            fit_comparison_array[i-1, 0] = x_values[0] # starting x_value for fit
+            fit_comparison_array[i-1, 1] = x_values[-1] # final x_value for fit
+            fit_comparison_array[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1) # fit line
+            correlation_matrix = np.corrcoef(x_values, y_values)
+            correlation_xy = correlation_matrix[0,1]
+            rsquared = correlation_xy**2
+            fit_comparison_array[i-1, 4] = correlation_xy**2 # add R^2 value to array
+            # j = j + 0.01
+
+        # print(fit_comparison_array)
+
+        # print(f'Slope for best fit Gaus: {fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 3]}')
+        best_fit_array[0] = fit_comparison_array[np.nanargmax(fit_comparison_array[:,4]), 0] # starting x herd
+        best_fit_array[1] = fit_comparison_array[np.nanargmax(fit_comparison_array[:,4]), 1] # final x herd
+        best_fit_array[2] = fit_comparison_array[np.nanargmax(fit_comparison_array[:,4]), 2] # intercept herd
+        best_fit_array[3] = fit_comparison_array[np.nanargmax(fit_comparison_array[:,4]), 3] # slope herd
+
+        ax2.plot([10**best_fit_array[0], 10**best_fit_array[1]], 
+                 [10**(best_fit_array[2]+best_fit_array[3]*best_fit_array[0]), 
+                 10**(best_fit_array[2]+best_fit_array[3]*best_fit_array[1])], 
+                 color='black', linestyle='--', label=f'Model fit, t={t}, slope={round(best_fit_array[3],2)}')
         ax2.scatter(bins_count[1:], cdf, label=f't={t}', s=6)
 
     ax1.plot([0,1], [0,1], linestyle='--', color='black')
@@ -485,12 +579,15 @@ def plot_lorenz_curve(MarketObj, image_dir=None):
     plt.show()
 
 
-def plot_lorenz_curve_Nagents(objects, image_dir=None):
+def plot_lorenz_curve_Nagents(objects, all_N_agents, image_dir=None):
     """
     Plots the Lorenz curve
     """
     
     fig, [ax1, ax2] = plt.subplots(1, 2, figsize=(10,5))
+
+    all_sorted_wealth = {n:[] for n in all_N_agents}
+    all_cum_wealth = {n:[] for n in all_N_agents}
 
     for MarketObj in objects:
         
@@ -501,17 +598,61 @@ def plot_lorenz_curve_Nagents(objects, image_dir=None):
         sorted_wealth = [i.A[-1]*MarketObj.p[-1] + i.C[-1] for i in sorted_wealth]
         cum_wealth = np.cumsum(sorted_wealth)
 
-        # print(cum_wealth)
+        all_sorted_wealth[N_agents] += [sorted_wealth]
+        all_cum_wealth[N_agents] += [cum_wealth]
 
-        X = np.linspace(0, 1, len(MarketObj.traders))
+    for N_agents in all_N_agents:
+
+        sorted_wealth = np.average(all_sorted_wealth[N_agents], axis=0)
+        cum_wealth = np.average(all_cum_wealth[N_agents], axis=0)
+
+        # print(cum_wealth)
+        X = np.linspace(0, 1, N_agents)
         G = np.abs(1 - sum([(X[i+1]-X[i])*(cum_wealth[i+1]/sum(sorted_wealth)+cum_wealth[i]/sum(sorted_wealth))
-                            for i in range(len(MarketObj.traders)-1)]))
+                            for i in range(N_agents-1)]))
 
         ax1.plot(np.linspace(0,1,N_agents), cum_wealth/sum(sorted_wealth), label='$N_{agents}$ = '+str(N_agents)+', Gini='+str(round(G,2)))
 
         # Determine distribution of wealth
         df = pd.DataFrame(sorted_wealth)
         cdf, bins_count = create_cdf(df)
+
+        model_array = np.array((cdf, bins_count[1:]))
+        fit_comparison_array = np.zeros((len(bins_count), 5))
+
+        best_fit_array = np.zeros(5)
+
+        for i in range(1, len(bins_count)-1):
+
+            # x_values = np.log10(np.delete(model_array[1], np.where(model_array[1] < j)))
+            # y_values = np.log10(np.delete(model_array[0], np.where(model_array[1] < j)))
+            x_values = np.log10(model_array[1,i:])
+            y_values = np.log10(model_array[0,i:])
+
+            # print('y0', y_values[0])
+
+            fit_comparison_array[i-1, 0] = x_values[0] # starting x_value for fit
+            fit_comparison_array[i-1, 1] = x_values[-1] # final x_value for fit
+            fit_comparison_array[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1) # fit line
+            correlation_matrix = np.corrcoef(x_values, y_values)
+            correlation_xy = correlation_matrix[0,1]
+            rsquared = correlation_xy**2
+            fit_comparison_array[i-1, 4] = correlation_xy**2 # add R^2 value to array
+            # j = j + 0.01
+
+        # print(fit_comparison_array)
+
+        # print(f'Slope for best fit Gaus: {fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 3]}')
+        best_fit_array[0] = fit_comparison_array[np.nanargmax(fit_comparison_array[:,4]), 0] # starting x herd
+        best_fit_array[1] = fit_comparison_array[np.nanargmax(fit_comparison_array[:,4]), 1] # final x herd
+        best_fit_array[2] = fit_comparison_array[np.nanargmax(fit_comparison_array[:,4]), 2] # intercept herd
+        best_fit_array[3] = fit_comparison_array[np.nanargmax(fit_comparison_array[:,4]), 3] # slope herd
+
+        ax2.plot([10**best_fit_array[0], 10**best_fit_array[1]], 
+                 [10**(best_fit_array[2]+best_fit_array[3]*best_fit_array[0]), 
+                 10**(best_fit_array[2]+best_fit_array[3]*best_fit_array[1])], 
+                 color='black', linestyle='--', label=f'Model fit, N={N_agents}, slope={round(best_fit_array[3],2)}')
+
         ax2.scatter(bins_count[1:], cdf, label='$N_{agents}$ = '+str(N_agents), s=6)
 
     ax1.plot([0,1], [0,1], linestyle='--', color='black')

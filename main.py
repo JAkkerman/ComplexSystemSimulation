@@ -45,13 +45,17 @@ def run_simulation(N_time, MarketObj, cluster):
         avg_degree(MarketObj, cluster)
 
         transaction_q, true_sellers, true_buyers = MarketObj.get_equilibrium_p()
+
+        # vis.vis_market_cross(MarketObj, transaction_q)
+
         MarketObj.perform_transactions(transaction_q, true_sellers, true_buyers)
         MarketObj.update_hist_vol()
 
         if cluster and activated_cluster != None:
             activated_cluster.self_destruct()
         # print(MarketObj.clusters)
-        # vis.vis_market_cross(MarketObj)
+
+        
 
     #vis.cluster_vis(MarketObj, N_time, cluster)
     #vis.vis_price_series(MarketObj, N_time)
@@ -131,10 +135,28 @@ if __name__ == '__main__':
     #     np.random.seed(seed)
 
 
-    # FOR VIS OF LORENZ, CAN BE DELETED LATER
+    # FOR VIS OF LORENZ OVER TIME, CAN BE DELETED LATER
     # for cluster in [True, False]:
+    # objects = []
+    # for i in range(10):
+    # # for N_agents in [100, 200, 400]:
+    #     for cluster in [True]:
+
+    #         MarketObj = initialise(N_agents, p, A, C, cluster, garch, garch_param, Pa_list[1], Pc_list[0])
+    #         run_simulation(N_time, MarketObj, cluster)
+    #         # Objects.append((MarketObj, cluster))
+    #     # if cluster:
+    #         # vis.cluster_vis(MarketObj, N_time, cluster)
+    #         # vis.plot_wealth_dist(MarketObj)
+    #         objects += [MarketObj]
+    # vis.plot_lorenz_curve(objects)
+    # vis.plot_lorenz_curve_Nagents(objects)
+
+    # FOR VIS OF LORENZ FOR DIFFERENT AMOUNTS, CAN BE DELETED LATER
+    # all_N_agents = [100, 200, 400]
     objects = []
-    for N_agents in [100, 200, 400]:
+    for i in range(10):
+        # for N_agents in all_N_agents:
         for cluster in [True]:
 
             MarketObj = initialise(N_agents, p, A, C, cluster, garch, garch_param, Pa_list[1], Pc_list[0])
@@ -142,9 +164,9 @@ if __name__ == '__main__':
             # Objects.append((MarketObj, cluster))
         # if cluster:
             # vis.cluster_vis(MarketObj, N_time, cluster)
-            # vis.plot_wealth_dist(MarketObj)
+            vis.plot_wealth_dist(MarketObj)
             objects += [MarketObj]
-    vis.plot_lorenz_curve_Nagents(objects)
+    # vis.plot_lorenz_curve_Nagents(objects, all_N_agents)
 
 
     # vis.vis_vol_cluster(Objects, 0.2, 10, N_time)

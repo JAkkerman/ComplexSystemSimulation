@@ -301,10 +301,12 @@ class Market():
         # q = np.arange(q_intersection+4000)
         # plt.plot(q, buypol(q), label='buy', color='red')
         # plt.plot(q, sellpol(q), label='sell', color='blue')
-        # plt.scatter(combined_buy[1], combined_buy[0], color='red')
-        # plt.scatter(combined_sell[1], combined_sell[0], color='blue')
+        # plt.scatter(q_buy, p_buy, color='red')
+        # plt.scatter(q_sell, p_sell, color='blue')
         # plt.scatter(q_intersection, p_intersection, color='black')
         # plt.legend()
+        # plt.xlabel('Quantity')
+        # plt.ylabel('Price')
         # plt.show()
 
         if q_intersection[0] <= 0 or p_intersection <= 0:
