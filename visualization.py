@@ -432,7 +432,7 @@ def plot_wealth_dist(MarketObj):
 
 
 
-def plot_lorenz_curve(MarketObj, image_dir=None):
+def plot_lorenz_curve(MarketObj, N_agents, image_dir=None):
     """
     Plots the Lorenz curve
     """
@@ -457,7 +457,7 @@ def plot_lorenz_curve(MarketObj, image_dir=None):
         G = np.abs(1 - sum([(X[i+1]-X[i])*(cum_wealth[i+1]/sum(sorted_wealth)+cum_wealth[i]/sum(sorted_wealth))
                             for i in range(len(MarketObj.traders)-1)]))
 
-        ax1.plot(np.linspace(0,1,100), cum_wealth/sum(sorted_wealth), label=f't={t}, Gini={round(G,2)}')
+        ax1.plot(np.linspace(0,1,N_agents), cum_wealth/sum(sorted_wealth), label=f't={t}, Gini={round(G,2)}')
 
         # Determine distribution of wealth
         df = pd.DataFrame(sorted_wealth)
@@ -556,7 +556,7 @@ def visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garc
     vis_wealth_over_time(MarketObj, image_dir)
     #vis_price_series([MarketObj], N_time, N_agents, image_dir)
     # cluster_vis(MarketObj, N_time, cluster, image_dir)
-    plot_lorenz_curve(MarketObj, image_dir)
+    plot_lorenz_curve(MarketObj, N_agents, image_dir)
 
 def visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, N):
 
