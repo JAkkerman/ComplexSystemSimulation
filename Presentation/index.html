@@ -65,13 +65,13 @@
           <ul>
             <!-- <li><a class="nav-link scrollto active" href="#voorpagina">Home</a></li> -->
             <li><a class="nav-link scrollto" href="#refresher">Refresher</a></li>
-            <li><a class="nav-link scrollto" href="#research1">Scale-free phenomenon</a></li>
+            <li><a class="nav-link scrollto" href="#research1">Properties of financial time series</a></li>
             <li><a class="nav-link scrollto " href="#model">Market Model</a></li>
             <li><a class="nav-link scrollto " href="#experiment">Experiment</a></li>
-            <li><a class="nav-link scrollto" href="#datanalysis">S&P 500 data analysis</a></li>
+            <li><a class="nav-link scrollto" href="#datanalysis">Model Validation</a></li>
             <li><a class="nav-link scrollto" href="#results">Results</a></li>
             <li><a class="nav-link scrollto" href="#conclusion">Conclusion</a></li>
-            <li><a class="nav-link scrollto" href="#team">Authors</a></li>
+            <!-- <li><a class="nav-link scrollto" href="#team">Authors</a></li> -->
           </ul>
           <i class="bi bi-list mobile-nav-toggle"></i>
         </nav><!-- .navbar -->
@@ -128,30 +128,7 @@
             </div>
           </div>
 
-          <div class="row">
-            <div
-              style="background-image: url(assets/img/susy/volclus.png)"
-              data-aos="fade-right"
-              class="image col-xl-5 d-flex align-items-stretch justify-content-center justify-content-lg-start"></div>
-            <div class="col-xl-7 pt-4 pt-lg-0 d-flex align-items-stretch">
-              <div class="content d-flex flex-column justify-content-center" data-aos="fade-left">
-                <h3>Volatility clustering</h3>
-                <br/>
-                <blockquote>
-                  Large changes tend to be followed by large changes, of either sign, and small changes tend to be followed by small changes
-                </blockquote>
-                
-                <p style="text-indent: 0.45em">- Mandelbrot, 1963</p>
 
-                  <!-- <div class="col-md-6 icon-box" data-aos="zoom-in" data-aos-delay="400">
-                    <i class="bx bx-shield"></i>
-                    <h4>Wealth distribution</h4>
-                    <p>Expedita veritatis consequuntur nihil tempore laudantium vitae denat paresearch1</p>
-                  </div> -->
-                </div>
-              </div><!-- End .content-->
-            </div>
-          </div>
         </div>
       </section><!-- End Refresher Section -->
 
@@ -215,9 +192,51 @@
               </div>
             </div>
           </div>
+          <div class="text-center" data-aos="zoom-in">
+              <a class="research1-btn" href="#volcluster">Next: volatility clustering</a>
+          </div>
 
         </div>
       </section><!-- End Features  S&P 500 Section -->
+      <!-- ======= Features Volatility clustering Section ======= -->
+      <section id="volcluster" class="features">
+        <div class="container" style="height: 100vh">
+            <div class="section-title" data-aos="fade-down">
+              <span>VOLATILITY CLUSTERING</span>
+              <h2>VOLATILITY CLUSTERING</h2>
+              <p><blockquote>
+                Large changes tend to be followed by large changes, of either sign, and small changes tend to be followed by small changes
+              </blockquote>
+              <p style="text-indent: 0.45em">- Mandelbrot, 1963</p></p>
+            </div>
+            <div class="text-center" data-aos="zoom-in">
+                <img src="assets/img/susy/volclus.png">
+                <br />
+                <a class="research1-btn" href="#wealthdist">Next:wealth distribution</a>
+            </div>
+
+
+        </div>
+    </section><!-- End Features  volatility clustering Section -->
+
+    <!-- ======= Features wealth distribution Section ======= -->
+    <section id="wealthdist" class="features">
+      <div class="container" style="height: 100vh">
+          <div class="section-title" data-aos="fade-down">
+            <span>WEALTH DISTRIBUTION</span>
+            <h2>WEALTH DISTRIBUTION</h2>
+            <p><blockquote>
+              Large changes tend to be followed by large changes, of either sign, and small changes tend to be followed by small changes
+            </blockquote>
+            <p style="text-indent: 0.45em">- Mandelbrot, 1963</p></p>
+          </div>
+          <div class="text-center" data-aos="zoom-in">
+              <img src="assets/img/susy/volclus.png">
+          </div>
+
+
+      </div>
+  </section><!-- End Features  wealth distribution Section -->
 
 
       <!-- ======= ABM Model Section ======= -->
@@ -395,16 +414,43 @@
         <div class="container" style="height: 100vh">
 
           <div class="text-center" data-aos="zoom-in">
-            <h3>RESULTS - PART 1</h3>
-            <h3>Our Data Analysis of S&P 500</h3>
+            <h3>MODEL VALIDATION</h3>
             <p>We performed the same data analysis as Gopikrishnan et al., to</p>
 
             <ul>
               <li>verify their results</li>
               <li>compare with our results of the Genoa Market model</li>
             </ul>
-
-            <img src="assets/img/susy/sp500ownanalysis.png" alt="..." width="60%" height="auto">
+            <div class="row">
+              <div class="col-lg-4 col-md-6 d-flex align-items-stretch", style="height: 300px width: 300px">
+                <div class="card" data-aos="fade-up">
+                  <img src="assets/img/susy/PowerLaw_validation.png" class="card-img-top" alt="...">
+                  <div class="card-body">
+                    <h5 class="card-title"><a href="">Power law asymptotic behaviour</a></h5>
+                    <p class="card-text" style="color:black">For time periods up to 4 days, the probability of returns are consistent with a
+                      power-law.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-4 col-md-6 mt-5 mt-md-0 d-flex align-items-stretch">
+                <div class="card" data-aos="fade-up" data-aos-delay="150">
+                  <img src="assets/img/susy/Volatility_clustering_validation.png" class="card-img-top" alt="...">
+                  <div class="card-body">
+                    <h5 class="card-title"><a href="">.. with exponent &thickapprox; 3!</a></h5>
+                    <p class="card-text" style="color:black">This lies well outside stable Levy regime 0 &gt; a &gt; 2.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-4 col-md-6 mt-5 mt-lg-0 d-flex align-items-stretch">
+                <div class="card" data-aos="fade-up" data-aos-delay="300">
+                  <img src="assets/img/susy/gaussian.png" class="card-img-top" alt="...">
+                  <div class="card-body">
+                    <h5 class="card-title"><a href="">Gaussian for longer time periods</a></h5>
+                    <p class="card-text" style="color:black">For time periods longer than 4 days, the returns slowly converge to a Gaussian
+                      ditribution.</p>
+                  </div>
+                </div>
+              </div>
           </div>
         </div>
       </section>
@@ -415,8 +461,8 @@
         <div class="container" style="height: 100vh">
 
           <div class="section-title" data-aos="fade-down">
-            <span>RESULTS - PART 2</span>
-            <h2>RESULTS - PART 2</h2>
+            <span>RESULTS - CUBIC LAW</span>
+            <h2>RESULTS - CUBIC LAW</h2>
             <p>The major findings of our Genoa Market Model experiment.</p>
           </div>
 
@@ -451,18 +497,20 @@
               </div>
             </div>
           </div>
+          <div class="text-center" data-aos="zoom-in">
+          <a class="research1-btn" href="#results2">Next: volatility clustering</a>
+            </div>
 
         </div>
       </section><!-- End Results Section -->
-
-<!-- Conclusion section -->
-      <section id="conclusion" class="results section-bg">
+      <!-- ======= Results Section ======= -->
+      <section id="results2" class="results section-bg">
         <div class="container" style="height: 100vh">
 
           <div class="section-title" data-aos="fade-down">
-            <span>Conclusion</span>
-            <h2>Conclusion</h2>
-            <p>TODO</p>
+            <span>RESULTS - VOLATILITY CLUSTERING</span>
+            <h2>RESULTS - VOLATILITY CLUSTERING</h2>
+            <p>The major findings of our Genoa Market Model experiment.</p>
           </div>
 
           <div class="row">
@@ -496,10 +544,106 @@
               </div>
             </div>
           </div>
+          <div class="text-center" data-aos="zoom-in">
+          <a class="research1-btn" href="#results3">Next: wealth distribution</a>
+            </div>
 
         </div>
-    </section><!-- End Conclusion Section -->
+      </section><!-- End Results Section -->
+      <!-- ======= Results Section ======= -->
+      <section id="results3" class="results section-bg">
+        <div class="container" style="height: 100vh">
 
+          <div class="section-title" data-aos="fade-down">
+            <span>RESULTS - WEALTH DISTRIBUTION</span>
+            <h2>RESULTS - WEALTH DISTRIBUTION</h2>
+            <p>The major findings of our Genoa Market Model experiment.</p>
+          </div>
+
+          <div class="row">
+            <div class="col-lg-4 col-md-6 d-flex align-items-stretch" style = "position:absolute; left:250px;">
+              <div class="card" data-aos="fade-up">
+                <img src="assets/img/susy/exponentialdecay.png" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <h5 class="card-title"><a href="">Power law asymptotic behaviour</a></h5>
+                  <p class="card-text">For time periods up to 4 days, the probability of returns are consistent with a
+                    power-law.</p>
+                </div>
+              </div>
+            </div>
+            <!-- <div class="col-lg-4 col-md-6 mt-5 mt-md-0 d-flex align-items-stretch">
+              <div class="card" data-aos="fade-up" data-aos-delay="150">
+                <img src="assets/img/susy/levy3.png" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <h5 class="card-title"><a href="">.. with exponent &thickapprox; 3!</a></h5>
+                  <p class="card-text">This lies well outside stable Levy regime 0 &gt; a &gt; 2.</p>
+                </div>
+              </div>
+            </div> -->
+            <div class="col-lg-4 col-md-6 mt-5 mt-lg-0 d-flex align-items-stretch" style = "position:absolute; right:250px;">
+              <div class="card" data-aos="fade-up" data-aos-delay="300">
+                <img src="assets/img/susy/gaussian.png" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <h5 class="card-title"><a href="">Gaussian for longer time periods</a></h5>
+                  <p class="card-text">For time periods longer than 4 days, the returns slowly converge to a Gaussian
+                    ditribution.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- <div class="text-center" data-aos="zoom-in">
+          <a class="research1-btn" href="#results3">Next: wealth distribution</a>
+            </div> -->
+
+        </div>
+      </section><!-- End Results Section -->
+
+<!-- Conclusion section -->
+<section id="conclusion" class="research1">
+  <div class="container" style="height: 100vh">
+
+    <div class="text-center" data-aos="zoom-in">
+      <h3>CONCLUSION</h3>
+      <p>We performed the same data analysis as Gopikrishnan et al., to</p>
+
+      <ul>
+        <li>verify their results</li>
+        <li>compare with our results of the Genoa Market model</li>
+      </ul>
+      <div class="row">
+        <div class="col-lg-4 col-md-6 d-flex align-items-stretch", style="height: 300px width: 300px">
+          <div class="card" data-aos="fade-up">
+            <img src="assets/img/susy/PowerLaw_validation.png" class="card-img-top" alt="...">
+            <div class="card-body">
+              <h5 class="card-title"><a href="">Power law asymptotic behaviour</a></h5>
+              <p class="card-text" style="color:black">For time periods up to 4 days, the probability of returns are consistent with a
+                power-law.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mt-5 mt-md-0 d-flex align-items-stretch">
+          <div class="card" data-aos="fade-up" data-aos-delay="150">
+            <img src="assets/img/susy/Volatility_clustering_validation.png" class="card-img-top" alt="...">
+            <div class="card-body">
+              <h5 class="card-title"><a href="">.. with exponent &thickapprox; 3!</a></h5>
+              <p class="card-text" style="color:black">This lies well outside stable Levy regime 0 &gt; a &gt; 2.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mt-5 mt-lg-0 d-flex align-items-stretch">
+          <div class="card" data-aos="fade-up" data-aos-delay="300">
+            <img src="assets/img/susy/gaussian.png" class="card-img-top" alt="...">
+            <div class="card-body">
+              <h5 class="card-title"><a href="">Gaussian for longer time periods</a></h5>
+              <p class="card-text" style="color:black">For time periods longer than 4 days, the returns slowly converge to a Gaussian
+                ditribution.</p>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+</section>
+<!-- End Our conclusion  Section -->
 
 
 
@@ -508,7 +652,7 @@
 
 
       <!-- ======= Team Section ======= -->
-      <section id="team" class="team">
+      <!-- <section id="team" class="team">
         <div class="container">
 
           <div class="section-title" data-aos="fade-down">
@@ -594,7 +738,7 @@
           </div>
 
         </div>
-      </section><!-- End Team Section -->
+      </section><!-- End Team Section --> -->
 
 
 

@@ -140,7 +140,12 @@ def vis_price_series(objects, N_time, N_agents, image_dir = None):
         # # plt.plot(bins_count[1:], real, label=label)
         # plt.scatter(bins_count[i,1:], cdf[i], label=label, marker='o')
 
-    gaus_bins_count, gaus_cdf = sample_gauss(N_time)
+    gaus_bins_count_list, gaus_cdf_list = [],[]
+    for i in range(100):
+        gaus_bins_count, gaus_cdf = sample_gauss(N_time)
+        gaus_bins_count_list.append(gaus_bins_count)
+        gaus_cdf_list.append(gaus_cdf)
+
     SP500_bins_count, SP500_cdf = SP500_pl()
     # gaus_bins_count, gaus_real = sample_gauss()
 
@@ -169,30 +174,40 @@ def vis_price_series(objects, N_time, N_agents, image_dir = None):
     # intercept_sp500 = fit_comparison_array_sp500[np.argmax(fit_comparison_array_sp500[:,4]), 2] # intercept herd
     slope_sp500 = fit_comparison_array_sp500[np.argmax(fit_comparison_array_sp500[:,4]), 3] # slope herd
 
-    fit_comparison_array_gaus= np.zeros((N_agents*3, 5))
-    j = 1
-    gaus_model_array = np.array((gaus_cdf, gaus_bins_count[1:]))
-    for i in range(1, int(N_agents*2)):
+    mean_cdf_gaus = np.mean(gaus_cdf_list, axis=0)
+    mean_bin_gaus = np.mean(gaus_bins_count_list, axis=0)
 
-        x_values = np.log10(np.delete(gaus_model_array[1], np.where(gaus_model_array[1] < j)))
-        y_values = np.log10(np.delete(gaus_model_array[0], np.where(gaus_model_array[1] < j)))
+    best_fit_array_gaus = np.zeros((100, 4))
 
-        fit_comparison_array_gaus[i-1, 0] = x_values[0] # starting x_value for fit
-        fit_comparison_array_gaus[i-1, 1] = x_values[-1] # final x_value for fit
-        fit_comparison_array_gaus[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1) # fit line
-        correlation_matrix = np.corrcoef(x_values, y_values)
-        correlation_xy = correlation_matrix[0,1]
-        rsquared = correlation_xy**2
-        fit_comparison_array_gaus[i-1, 4] = correlation_xy**2 # add R^2 value to array
-        j = j + 0.01
+    for k in range(100):
 
-    #print(f'Normalized returns >= {x_values[0]}, R-squared value: {rsquared}, power law fit slope: {fit_comparison_array_herd[i-1, 3]}')
+        fit_comparison_array_gaus= np.zeros((N_agents*3, 5))
+        j = 1
+        gaus_model_array = np.array((gaus_cdf_list[k], gaus_bins_count_list[k][1:]))
+        for i in range(1, int(N_agents*2)):
 
-    print(f'Slope for best fit Gaus: {fit_comparison_array_gaus[np.argmax(fit_comparison_array_gaus[:,4]), 3]}')
-    # starting_x_gaus = fit_comparison_array_gaus[np.argmax(fit_comparison_array_gaus[:,4]), 0] # starting x herd
-    # final_x_gaus = fit_comparison_array_gaus[np.argmax(fit_comparison_array_gaus[:,4]), 1] # final x herd
-    # intercept_gaus = fit_comparison_array_gaus[np.argmax(fit_comparison_array_gaus[:,4]), 2] # intercept herd
-    slope_gaus = fit_comparison_array_gaus[np.argmax(fit_comparison_array_gaus[:,4]), 3] # slope herd
+            x_values = np.log10(np.delete(gaus_model_array[1], np.where(gaus_model_array[1] < j)))
+            y_values = np.log10(np.delete(gaus_model_array[0], np.where(gaus_model_array[1] < j)))
+
+            fit_comparison_array_gaus[i-1, 0] = x_values[0] # starting x_value for fit
+            fit_comparison_array_gaus[i-1, 1] = x_values[-1] # final x_value for fit
+            fit_comparison_array_gaus[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1) # fit line
+            correlation_matrix = np.corrcoef(x_values, y_values)
+            correlation_xy = correlation_matrix[0,1]
+            rsquared = correlation_xy**2
+            fit_comparison_array_gaus[i-1, 4] = correlation_xy**2 # add R^2 value to array
+            j = j + 0.01
+
+        #print(f'Normalized returns >= {x_values[0]}, R-squared value: {rsquared}, power law fit slope: {fit_comparison_array_herd[i-1, 3]}')
+
+        print(f'Slope for best fit Gaus: {fit_comparison_array_gaus[np.argmax(fit_comparison_array_gaus[:,4]), 3]}')
+        best_fit_array_gaus[k][0] = fit_comparison_array_gaus[np.argmax(fit_comparison_array_gaus[:,4]), 0] # starting x herd
+        best_fit_array_gaus[k][1] = fit_comparison_array_gaus[np.argmax(fit_comparison_array_gaus[:,4]), 1] # final x herd
+        best_fit_array_gaus[k][2] = fit_comparison_array_gaus[np.argmax(fit_comparison_array_gaus[:,4]), 2] # intercept herd
+        best_fit_array_gaus[k][3] = fit_comparison_array_gaus[np.argmax(fit_comparison_array_gaus[:,4]), 3] # slope herd
+
+    mean_slope_gaus = np.mean(best_fit_array_gaus, axis=0)
+    std_slope_gaus = np.std(best_fit_array_gaus, axis=0)
 
     if cdf.shape[0] > 0:
 
@@ -280,7 +295,8 @@ def vis_price_series(objects, N_time, N_agents, image_dir = None):
 
 
     # Plotting
-    plt.scatter(gaus_bins_count[1:], gaus_cdf, label=f"Gaussian, slope = {round(slope_gaus, 2)}", marker='.')
+    # plt.scatter(gaus_bins_count[1:], gaus_cdf, label=f"Gaussian, slope = {round(slope_gaus, 2)}", marker='.')
+    plt.scatter(mean_bin_gaus[1:], mean_cdf_gaus, label=f"Gaussian, slope = {round(mean_slope_gaus[3], 2)} $\\pm$ {round(std_slope_gaus[3], 2)}", marker='.')
     plt.scatter(SP500_bins_count[1:], SP500_cdf, label=f"S&P 500, slope = {round(slope_sp500,2)}", marker='.')
     plt.yscale('log')
     plt.xscale('log')
@@ -321,7 +337,7 @@ def cluster_vis(MarketObj, t, cluster, image_dir = None):
         plt.xlabel("Time")
         # plt.ylabel("Normalized average network degree")
         plt.legend()
-        
+
         if image_dir != None:
             plt.savefig(image_dir)
         else:
@@ -377,8 +393,8 @@ def vis_vol_cluster(objects, highp, window, N_time, image_dir = None):
 
 
 
-    plt.plot(bins_count_gaus[1:], count_gaus, label="Gaussian distribution")
     plt.plot(bins_count_sp500[1:], count_sp500, label=f"SP500, R = {round(std_sp500/std_gaus, 2)}")
+    plt.plot(bins_count_gaus[1:], count_gaus, label="Gaussian distribution")
     plt.xlabel("Number of trading days")
     plt.ylabel("Frequency")
     plt.title("Volatility clustering")
@@ -550,5 +566,5 @@ def visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, ga
     # Image directory
     image_dir = 'images/Nagents{N_agents}_Pa{Pa}_Pc{Pc}'
 
-    vis_price_series(objects, N_time, N_agents, image_dir)
+    # vis_price_series(objects, N_time, N_agents, image_dir)
     vis_vol_cluster(objects, 0.2, 10, N_time, image_dir)
