@@ -1,34 +1,35 @@
 import numpy as np
-from numpy.polynomial.chebyshev import chebfit
 from scipy.optimize import fsolve
-import sys
-
 from arch import arch_model
-import datetime as dt
-import arch.data.sp500
 import pandas as pd
 
-import matplotlib.pyplot as plt # TEMP
-
+# Our own defined modules
 from cluster import Cluster
 from data import calc_norm_return
 
 
 class Market():
-    def __init__(self, p, cluster, garch, garch_param, Pa, Pc,
-                 T=20, k=3.5, mu=1.01, hist_vol=0.1):
+    def __init__(self, p, cluster, garch, garch_param, Pa, Pc):
+        """
+        Initialise a market.
+
+        @param p                Initial price
+        @param cluster          Whether to do clustering or not
+        @param garch            Whether to determine volatility with GARCH or not
+        @garch_param
+        @param Pa               Probability of activating a cluster
+        @param Pc               Probability of forming a pair between two agents, i.e clustering probability
+        @param hist_vol         Initial volatility, default=0.1
+        """
         self.p = [p]
         self.cluster=cluster
         self.traders = []
         self.buyers = []
         self.sellers = []
         self.clusters = []
-        self.T = T
-        self.k = k
-        self.mu = mu
         self.Pc = Pc
         self.Pa = Pa
-        self.hist_vol = hist_vol # TODO: aanpassen aan historische vol
+        self.hist_vol = 0.1 # Value used by Raberto et al (2001)
         self.sigma = []
         self.pairs = []
         self.avg_degree = []
@@ -39,20 +40,20 @@ class Market():
 
         self.update_sigma()
 
-
     def update_sigma(self):
         """
-        Updates sigma.
+        Updates the volatility.
         """
-        # Original volatility prediction, as specified in Raberto et al (2001)
-        if not self.garch:
-            self.sigma += [self.k*self.hist_vol]
 
-        # GARCH fitting, if selected
+        # Original volatility prediction, as specified in the paper of Raberto et al (2001)
+        if not self.garch:
+            self.sigma += [3.5 * self.hist_vol] # 3.5 is value used by Raberto et al (2001)
+
+        # GARCH fitting
         else:
             # If lenght of price series is smaller than 20, use default value
-            if len(self.p) < 100:
-                self.sigma += [self.k*self.hist_vol]
+            if len(self.p) < 20:
+                self.sigma += [3.5 * self.hist_vol] # 3.5 is value used by Raberto et al (2001)
             # Otherwise, fit GARCH and predict one time step in the future
             else:
                 self.sigma += [self.fit_GARCH()]
@@ -60,12 +61,17 @@ class Market():
 
     def update_hist_vol(self):
         """
-        Updates historical volatility by taking the standard deviation of the
-            past price series.
+        Updates historical volatility by taking the standard deviation of the past price series.
         """
-        if len(self.p) > self.T:
-            returns = np.log(np.roll(np.array(self.p[:-self.T]), shift=-1)/np.array(self.p[:-self.T]))
+
+        # Only update if simulation has ran lang enough.
+        if len(self.p) > 20:
+
+            # Std of log-price returns of time window of 20 time steps
+            returns = np.log(np.roll(np.array(self.p[:-20]), shift=-1) / np.array(self.p[:-20]))
             self.hist_vol = np.std(returns)
+
+            # Update volatilty for this time-step
             self.update_sigma()
 
 
@@ -73,19 +79,18 @@ class Market():
         """
         Fits GARCH model to previous price data.
         """
-        # Get last 20-100 data points
+        # Get last 20-100 data points and calculate the normalised returns
         price_data = pd.DataFrame(self.p[-min(len(self.p)-1, 100):])
-        # returns = 100*price_data.pct_change().dropna()
-        returns = 100*calc_norm_return(price_data, False)
+        returns = 100 * calc_norm_return(price_data, False)
 
+        # Make GARCH model
         am = arch_model(returns, p=self.garch_param[0], q=self.garch_param[1])
         res = am.fit(disp="off")
-        # print("jee")
+  
+        # Perform volatility forecast
         forecasts = res.forecast(reindex=True)
 
-        # print(forecasts.variance)
-
-        # print(np.sqrt(forecasts.variance.iloc[-1][0]))
+        # Get the volaility forecast for tomorrow 
         return np.sqrt(forecasts.variance.iloc[-1][0])/100**2
 
 
@@ -109,8 +114,7 @@ class Market():
 
     def activate_cluster(self):
         """
-        Activates one of the clusters with probability Pc,
-            randomly selects activated cluster.
+        Activates one of the clusters with probability Pc, randomly selects activated cluster.
         """
         if np.random.random() < self.Pc:
             activated_cluster = np.random.choice(self.clusters)
@@ -147,6 +151,7 @@ class Market():
             # Skip if already in the same cluster
             if trader1.in_cluster == trader2.in_cluster and trader1.in_cluster != None:
                 continue
+
             # Add trader to cluster if other trader already in cluster
             elif trader1.in_cluster != None and trader2.in_cluster == None:
                 trader1.in_cluster.add_to_cluster(trader2)
@@ -171,67 +176,33 @@ class Market():
         sorted_sell = sorted(self.sellers, key=lambda x: x.s_i)
         sorted_buy = sorted(self.buyers, key=lambda x: x.b_i, reverse=True)
 
-        p_sell = np.array([i.s_i for i in sorted_sell]) # sorted list of sell price limits
+        # Sorted lists of sell/buy price limits
+        p_sell = np.array([i.s_i for i in sorted_sell])
+        p_buy = np.array([i.b_i for i in sorted_buy])
+
+        # Total amounts of stock to buy/sell
         q_sell = np.cumsum([i.a_s for i in sorted_sell])
-        p_buy = np.array([i.b_i for i in sorted_buy]) # sorted list of buy price limits
         q_buy = np.cumsum([i.a_b for i in sorted_buy])
 
-        # Compute distances between points
-        # p_diff = p_buy[:,np.newaxis] - p_sell
-        # q_diff = q_buy[:,np.newaxis] - q_sell
-
-        # Only distances that are
-        # distances = np.sqrt(p_diff**2 + q_diff**2)
-
-        # distances = (distances*(p_diff>0)*(np.roll((p_diff<0), -1)))
-        # distances[distances==0] = np.nan
-
-        # print(distances)
-
-        # plt.imshow(distances)
-        # plt.scatter(sell_price_index, buy_price_index)
-        # plt.show()
-
-        # buy_price_index, sell_price_index = np.unravel_index(np.nanargmin(distances, axis=None), distances.shape)
-
-        # clearing_price = p_buy[buy_price_index]
-        # if clearing_price == 0.0:
-        #     return None, [], []
-        # print(buy_price_index, sell_price_index)
-        # print(clearing_price)
-        # buy_cum_quant = np.array(q_buy)[buy_price_index]
-
-        # # If we had to take a buyer lower down the line, select the new closest
-        # sell_cum_quant = np.array(q_sell)[sell_price_index]
-
-        # transaction_q = min(sell_cum_quant, buy_cum_quant)
-        # self.p += [clearing_price]
-
-        # plt.figure(figsize=(10,5))
-        # plt.scatter(q_buy, p_buy)
-        # plt.scatter(q_sell, p_sell)
-        # plt.scatter(q_buy[buy_price_index], p_buy[buy_price_index], color='red')
-        # plt.scatter(q_sell[sell_price_index], p_sell[sell_price_index], color='green')
-        # plt.show()
-
+        # Find the intersection of buy and sell curves
         intersection = self.find_intersection(p_buy, q_buy, p_sell, q_sell)
 
         if intersection == None:
             return 0, [], []
 
         # Find buyer closest to the intersection
-        buy_price_index = np.where((np.array(p_buy) - intersection) > 0,
-                                np.array(p_buy), np.inf).argmin()
-        buy_price = np.array(p_buy)[buy_price_index]
+        buy_price_index = np.where((np.array(p_buy) - intersection) > 0, np.array(p_buy), np.inf).argmin()
+        buy_price = np.array(p_buy)[buy_price_index] # clearing price
         buy_cum_quant = np.array(q_buy)[buy_price_index]
 
         # Find seller closest to the intersection
-        sell_price_index = np.where((np.array(p_sell) - buy_price) < 0,
-                                        np.array(p_sell), -np.inf).argmax()
+        sell_price_index = np.where((np.array(p_sell) - buy_price) < 0, np.array(p_sell), -np.inf).argmax()
         sell_cum_quant = np.array(q_sell)[sell_price_index]
 
         # Determine transation quantity
         transaction_q = min(sell_cum_quant, buy_cum_quant)
+
+        # Add new asset price
         self.p += [buy_price]
 
         return transaction_q, sorted_sell, sorted_buy
@@ -247,10 +218,12 @@ class Market():
         sold_q = transaction_q
         for seller in true_sellers:
             if seller != 0:
+                # Seller can fill up his order
                 if seller.a_s < sold_q:
                     seller.C += [seller.C[-1] + seller.a_s*self.p[-1]]
                     seller.A += [seller.A[-1] - seller.a_s]
                     sold_q -= seller.a_s
+                # Partially fill up sell order
                 else:
                     seller.C += [seller.C[-1] + sold_q*self.p[-1]]
                     seller.A += [seller.A[-1] - sold_q]
@@ -260,19 +233,23 @@ class Market():
         bought_q = transaction_q
         for buyer in true_buyers:
             if buyer != 0:
+                # Buyer fills up his order
                 if buyer.a_b < bought_q:
                     buyer.C += [buyer.C[-1] - buyer.a_b*self.p[-1]]
                     buyer.A += [buyer.A[-1] + buyer.a_b]
                     bought_q -= buyer.a_b
+                # Partially fill buy order
                 else:
                     buyer.C += [buyer.C[-1] - bought_q*self.p[-1]]
                     buyer.A += [buyer.A[-1] + bought_q]
                     bought_q -= bought_q
 
+        # Keep asset and cash series consistent
         for trader in self.traders:
             if (trader not in true_sellers) and (trader not in true_buyers):
                 trader.no_trade()
 
+        # Empty buyer and seller lists
         self.reset_lists()
 
 
@@ -281,33 +258,23 @@ class Market():
         Fits polynomial to buy and sell curves, finds intersection
         """
 
+        # Fit the buy and sell curves
         buyfit = np.polyfit(q_buy[5:-5], p_buy[5:-5], deg=1)
         sellfit = np.polyfit(q_sell[5:-5], p_sell[5:-5], deg=1)
 
+        # Make polynomial object
         buypol = np.poly1d(buyfit)
         sellpol = np.poly1d(sellfit)
 
         def solve_intersection(fun1, fun2, x0):
             return fsolve(lambda x : fun1(x) - fun2(x), x0)
 
+        # Find the intersection between buy and sell 
         q_intersection = solve_intersection(buypol, sellpol, 100)
         p_intersection = buypol(q_intersection[0])
 
-    # intersection = np.roots(buypol-sellpol)
-
-        # print('q: ', q_intersection, 'p: ', p_intersection)
-
-        # if len(self.p)%1000==0:
-        # q = np.arange(q_intersection+4000)
-        # plt.plot(q, buypol(q), label='buy', color='red')
-        # plt.plot(q, sellpol(q), label='sell', color='blue')
-        # plt.scatter(combined_buy[1], combined_buy[0], color='red')
-        # plt.scatter(combined_sell[1], combined_sell[0], color='blue')
-        # plt.scatter(q_intersection, p_intersection, color='black')
-        # plt.legend()
-        # plt.show()
-
-        if q_intersection[0] <= 0:
+        # No intersection found
+        if q_intersection[0] <= 0 or p_intersection <= 0:
             print('q: ', q_intersection[0], 'p: ', p_intersection)
 
             return None

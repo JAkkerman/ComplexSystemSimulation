@@ -3,6 +3,14 @@ import math
 
 class Trader():
     def __init__(self, id, market, A, C):
+        """
+        Initialise trader with a specific amount of cash and assets.
+
+        @param id       Unique trader id
+        @param market   Reference to the market
+        @param A        Initial amount of stocks
+        @param C        Initial cash amount
+        """
         self.id = id
         self.market = market # add market object for easy access to parameters
         self.C = [C] # initialize list for cash time series
@@ -14,8 +22,11 @@ class Trader():
         self.P_i = 0.5 # buy order probability
         self.in_cluster = None
 
-    def trade_decision(self): # determine whether buyer or seller
-        # print(self.id)
+
+    def trade_decision(self): 
+        """
+        Determine whether the trader wants to buy or sell at this time step.
+        """
         if np.random.random() > self.P_i:
             self.market.buyers += [self]
             self.buy()
@@ -23,43 +34,46 @@ class Trader():
             self.market.sellers += [self]
             self.sell()
 
+
     def buy(self):
-        # print(f'agent {self.id} buys')
+        """
+        Trader performs a buy action.
+        """
 
-        # print(self.market.mu, self.market.sigma)
-
+        # Generate buy limit price
         b_i = max(0, self.market.p[-1]*np.random.normal(self.market.mu, self.market.sigma[-1]))
-        # print(f'b_i = {b_i}')
 
         # Generate buy limit price
         if b_i == 0:
             self.a_b = 0
             self.b_i = 0
         else:
-            a_b = max(0, math.trunc(np.random.random()*self.C[-1]/b_i))
+            # Determine amount of stocks to buy (spend random fraction of total cash)
+            a_b = max(0, math.trunc(np.random.random() * self.C[-1] / b_i))
 
+            # Set the buy limit price
             self.b_i = b_i
             self.a_b = a_b
 
+
     def sell(self):
-        # print(f'agent {self.id} sells')
-
-        # print('assets agent ', self.id, self.A[-1])
-        a_s = max(0, math.trunc(np.random.random()*self.A[-1]))
-
-        # print('agent wants to sell', a_s, k)
+        """
+        Trader performs a sell action.
+        """
+        # Amount of stocks to sell is a random fraction of total stocks
+        a_s = max(0, math.trunc(np.random.random() * self.A[-1]))
 
         # Generate sell limit price
         s_i = max(0, self.market.p[-1]/np.random.normal(self.market.mu, self.market.sigma[-1]))
-        # print(f's_i = {s_i}')
 
+        # Set the sell limit price and amount of stocks to cell
         self.s_i = s_i
         self.a_s = a_s
 
+
     def no_trade(self):
         """
-        Called when no trade is made, in order to keep the asset and cash series
-        consistent
+        Called when no trade is made, in order to keep the asset and cash series consistent
         """
         self.A += [self.A[-1]]
         self.C += [self.C[-1]]
