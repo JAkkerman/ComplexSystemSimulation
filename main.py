@@ -90,13 +90,14 @@ def job(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list
     # Loop over every parameter configuration
     for Pa in Pa_list:
         for Pc in Pc_list:
+            for N_agent in N_agents:
 
             # Run single simulation for this parameter config
-            MarketObj = initialise(N_agents, p, A, C, cluster, garch, garch_param, Pa, Pc)
+            MarketObj = initialise(N_agent, p, A, C, cluster, garch, garch_param, Pa, Pc)
             MarketObj = run_simulation(N_time, MarketObj, cluster)
 
             # Save the results form this run
-            management.saveSingleMarket(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, i, MarketObj)
+            management.saveSingleMarket(N_agent, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, i, MarketObj)
 
             # Delete market object
             del MarketObj
@@ -107,7 +108,6 @@ def job(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list
 if __name__ == '__main__':
 
     N_time = 10000
-    N_agents = 100
     cluster = True
     C = 30000
     A = 300
