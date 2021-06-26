@@ -217,23 +217,41 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
                     objects = management.loadMultipleMarkets(agent, N_time, C, A, p, garch, garch_n, garch_param, a, c, cluster, N)
 
                     counter_herd = 0
+                    counter_norm = 0
                     for object in objects:
-                        counter_herd += 1
+                        if object[1][0]:
+                            counter_herd += 1
+                        else:
+                            counter_norm += 1
 
                     cdf_herd = np.zeros((counter_herd, 50))
+                    cdf = np.zeros((counter_norm, 50))
                     bins_count_herd = np.zeros((counter_herd, 51))
+                    bins_count = np.zeros((counter_norm, 51))
+
                     counter_herd = 0
+                    counter_norm = 0
+
                     label_list_herd = []
+                    label_list_norm = []
+                    N_agent_list_norm = []
                     N_agent_list_herd = []
 
                     for object in objects:
                         df = pd.DataFrame(object[0].p)
                         df = calc_norm_return(df, True)
 
-                        cdf_herd[counter_herd, :], bins_count_herd[counter_herd, :] = create_cdf(df)
-                        counter_herd += 1
-                        N_agent_list_herd.append(object[1][1])
-                        
+                        if object[1][0]:
+                            cdf_herd[counter_herd, :], bins_count_herd[counter_herd, :] = create_cdf(df)
+                            counter_herd += 1
+                            N_agent_list_herd.append(object[1][1])
+                        else:
+                            cdf[counter_norm,:], bins_count[counter_norm,:] = create_cdf(df)
+                            counter_norm += 1
+                            N_agent_list_norm.append(object[1][1])
+                            label_list_norm.append(f"Model, {object[1][1]} agents, slope ")
+                            label_list_norm.append("Model")
+
                         # Plot label
                         if is_Pa_Experiment:
                             label_list_herd.append(f"Herd model, Pa = {a}")
@@ -242,35 +260,78 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
                         elif is_Nagent_experiment:
                             label_list_herd.append(f"Herd model, {agent} agents")
 
-                    mean_cdf_herd = np.mean(cdf_herd, axis=0)
-                    mean_bin_herd = np.mean(bins_count_herd, axis=0)
-                    best_fit_herd_array = np.zeros((counter_herd, 4))
-                    for k in range(counter_herd):
-                        fit_comparison_array_herd = np.zeros((N_agent_list_herd[0]*3, 5))
-                        j = 1
-                        herd_model_array = np.array((cdf_herd[k], bins_count_herd[k][1:]))
-                        for i in range(1, int(N_agent_list_herd[0]*2)):
 
-                            x_values = np.log10(np.delete(herd_model_array[1], np.where(herd_model_array[1] < j)))
-                            y_values = np.log10(np.delete(herd_model_array[0], np.where(herd_model_array[1] < j)))
-                            fit_comparison_array_herd[i-1, 0] = x_values[0] # starting x_value for fit
-                            fit_comparison_array_herd[i-1, 1] = x_values[-1] # final x_value for fit
-                            fit_comparison_array_herd[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1)  # fit line
-                            correlation_matrix = np.corrcoef(x_values, y_values)
-                            correlation_xy = correlation_matrix[0, 1]
-                            rsquared = correlation_xy**2
-                            fit_comparison_array_herd[i-1, 4] = correlation_xy**2 # add R^2 value to array
-                            j = j + 0.01
+                    if cdf.shape[0] > 0:
 
-                        print(f'Slope for best fit herd model: {fit_comparison_array_herd[np.argmax(fit_comparison_array_herd[:,4]), 3]}')
-                        best_fit_herd_array[k][0] = fit_comparison_array_herd[np.argmax(fit_comparison_array_herd[:, 4]), 0]  # starting x herd
-                        best_fit_herd_array[k][1] = fit_comparison_array_herd[np.argmax(fit_comparison_array_herd[:, 4]), 1]  # final x herd
-                        best_fit_herd_array[k][2] = fit_comparison_array_herd[np.argmax(fit_comparison_array_herd[:, 4]), 2]  # intercept herd
-                        best_fit_herd_array[k][3] = fit_comparison_array_herd[np.argmax(fit_comparison_array_herd[:, 4]), 3]  # slope herd
+                        mean_cdf = np.mean(cdf, axis=0)
+                        mean_bin = np.mean(bins_count, axis=0)
 
-                    mean_values_herd = np.mean(best_fit_herd_array, axis=0)
-                    std_values_herd = np.std(best_fit_herd_array, axis=0)
-                    confint_herd = 1.96*(std_values_herd[3]/np.sqrt(15))
+                        # Power law fits
+                        # Regular model
+                        best_fit_array = np.zeros((counter_norm, 4))
+                        for k in range(counter_norm):
+                            fit_comparison_array = np.zeros((N_agent_list_norm[0]*3, 5))
+                            j = 1
+                            model_array = np.array((cdf[k], bins_count[k][1:]))
+                            for i in range(1, int(N_agent_list_norm[0]*2)):
+                                x_values = np.log10(np.delete(model_array[1], np.where(model_array[1] < j)))
+                                y_values = np.log10(np.delete(model_array[0], np.where(model_array[1] < j)))
+                                fit_comparison_array[i-1, 0] = x_values[0] # starting x_value for fit
+                                fit_comparison_array[i-1, 1] = x_values[-1] # final x_value for fit
+                                fit_comparison_array[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1) # fit line
+                                correlation_matrix = np.corrcoef(x_values, y_values)
+                                correlation_xy = correlation_matrix[0,1]
+                                rsquared = correlation_xy**2
+                                fit_comparison_array[i-1, 4] = correlation_xy**2 # add R^2 value to array
+                                j = j + 0.01
+
+                                #print(f'Normalized returns >= {x_values[0]}, R-squared value: {rsquared}, power law fit slope: {fit_comparison_array[i-1, 3]}')
+
+                            print(f'Slope for best fit regular model: {fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 3]}')
+                            best_fit_array[k][0] = fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 0] #starting x
+                            best_fit_array[k][1] = fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 1] # final x
+                            best_fit_array[k][2] = fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 2] # intercept
+                            best_fit_array[k][3] = fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 3] # slope
+
+                        mean_values_norm = np.mean(best_fit_array, axis=0)
+                        std_values_norm = np.std(best_fit_array, axis=0)
+                        confint_norm = 1.96*(std_values_norm[3]/np.sqrt(15))
+
+                        # plt.plot([10**mean_values_norm[0], 10**mean_values_norm[1]], [10**(mean_values_norm[2] + mean_values_norm[3]*mean_values_norm[0]), 10**(mean_values_norm[2] + mean_values_norm[3]*mean_values_norm[1])],
+                        #          label=f'Model fit, slope = {mean_values_norm[3]:.3f} $\\pm$ {std_values_norm[3]:.2f}', color='black') # plot regular model power law fit
+                        plt.scatter(mean_bin[1:], mean_cdf, label=label_list_norm[0] + f", slope = {round(mean_values_norm[3],2)} $\\pm$ {round(confint_norm,2)}")
+
+                    # Herd model
+                    if cdf_herd.shape[0] > 0:
+                        mean_cdf_herd = np.mean(cdf_herd, axis=0)
+                        mean_bin_herd = np.mean(bins_count_herd, axis=0)
+                        best_fit_herd_array = np.zeros((counter_herd, 4))
+                        for k in range(counter_herd):
+                            fit_comparison_array_herd = np.zeros((N_agent_list_herd[0]*3, 5))
+                            j = 1
+                            herd_model_array = np.array((cdf_herd[k], bins_count_herd[k][1:]))
+                            for i in range(1, int(N_agent_list_herd[0]*2)):
+
+                                x_values = np.log10(np.delete(herd_model_array[1], np.where(herd_model_array[1] < j)))
+                                y_values = np.log10(np.delete(herd_model_array[0], np.where(herd_model_array[1] < j)))
+                                fit_comparison_array_herd[i-1, 0] = x_values[0] # starting x_value for fit
+                                fit_comparison_array_herd[i-1, 1] = x_values[-1] # final x_value for fit
+                                fit_comparison_array_herd[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1)  # fit line
+                                correlation_matrix = np.corrcoef(x_values, y_values)
+                                correlation_xy = correlation_matrix[0, 1]
+                                rsquared = correlation_xy**2
+                                fit_comparison_array_herd[i-1, 4] = correlation_xy**2 # add R^2 value to array
+                                j = j + 0.01
+
+                            print(f'Slope for best fit herd model: {fit_comparison_array_herd[np.argmax(fit_comparison_array_herd[:,4]), 3]}')
+                            best_fit_herd_array[k][0] = fit_comparison_array_herd[np.argmax(fit_comparison_array_herd[:, 4]), 0]  # starting x herd
+                            best_fit_herd_array[k][1] = fit_comparison_array_herd[np.argmax(fit_comparison_array_herd[:, 4]), 1]  # final x herd
+                            best_fit_herd_array[k][2] = fit_comparison_array_herd[np.argmax(fit_comparison_array_herd[:, 4]), 2]  # intercept herd
+                            best_fit_herd_array[k][3] = fit_comparison_array_herd[np.argmax(fit_comparison_array_herd[:, 4]), 3]  # slope herd
+
+                        mean_values_herd = np.mean(best_fit_herd_array, axis=0)
+                        std_values_herd = np.std(best_fit_herd_array, axis=0)
+                        confint_herd = 1.96*(std_values_herd[3]/np.sqrt(15))
 
             # plt.plot([10**mean_values_herd[0], 10**mean_values_herd[1]], [10**(mean_values_herd[2] + mean_values_herd[3]*mean_values_herd[0]), 10**(mean_values_herd[2] + mean_values_herd[3]*mean_values_herd[1])],
             #          label=f'Herd model fit, slope = {mean_values_herd[3]:.3f} $\\pm$ {std_values_herd[3]:.2f}', color='black', linestyle='--') # plot herd model power law fit
@@ -285,7 +346,6 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
         plt.legend()
         plt.xlabel("Normalized returns")
         plt.ylabel("Cumulative distribution")
-
 
         # Plot title
         if is_Pc_experiment:
@@ -311,8 +371,7 @@ def vis_wealth_over_time(MarketObj, image_dir=None):
 
     if image_dir != None:
         plt.savefig(image_dir)
-    else:
-        plt.show()
+    plt.show()
 
 
 def cluster_vis(MarketObj, t, cluster, image_dir=None):
@@ -332,8 +391,7 @@ def cluster_vis(MarketObj, t, cluster, image_dir=None):
 
         if image_dir != None:
             plt.savefig(image_dir)
-        else:
-            plt.show()
+        plt.show()
 
 
 def vis_vol_cluster(highp, window, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, N):
@@ -392,9 +450,12 @@ def vis_vol_cluster(highp, window, N_agents, N_time, C, A, p, garch, garch_n, ga
                     # Load all markets for this configuration
                     objects = management.loadMultipleMarkets(agent, N_time, C, A, p, garch, garch_n, garch_param, a, c, cluster, N)
 
+                    cluster_measures_norm = []
                     cluster_measures_herd = []
                     bin_count_herd = []
                     count_herd = []
+                    bin_count_norm = []
+                    count_norm = []
                     for object in objects:
                         df = pd.DataFrame(object[0].p)
                         df = calc_norm_return(df, True)
@@ -402,22 +463,38 @@ def vis_vol_cluster(highp, window, N_agents, N_time, C, A, p, garch, garch_n, ga
                         count_series, bins_count_series = np.histogram(series, bins=[i for i in range(window+1)])
                         std_series = np.std(series)
                         cluster_measure = std_series/std_gaus
-                        cluster_measures_herd.append(cluster_measure)
-                        bin_count_herd.append(bins_count_series[1:])
-                        count_herd.append(count_series)
+                        if object[1][0]:
+                            cluster_measures_herd.append(cluster_measure)
+                            bin_count_herd.append(bins_count_series[1:])
+                            count_herd.append(count_series)
+                        else:
+                            cluster_measures_norm.append(cluster_measure)
+                            bin_count_norm.append(bins_count_series[1:])
+                            count_norm.append(count_series)
 
-                    mean_count_herd = np.mean(np.array(count_herd), axis=0)
-                    mean_measure_herd = np.mean(cluster_measures_herd)
-                    std_measure_herd = np.std(cluster_measures_herd)
-                    conf_herd = 1.96*(std_measure_herd/ np.sqrt(len(count_herd)))
+                    if len(count_norm) > 0:
 
-                    # Plot graph line with label
-                    if is_Pc_experiment:
-                        plt.plot(bin_count_herd[0], mean_count_herd, label=f"Herd model, Pc = {c}, R = {round(mean_measure_herd,2)} $\\pm$ {round(conf_herd, 2)}")
-                    elif is_Pa_Experiment:
-                        plt.plot(bin_count_herd[0], mean_count_herd, label=f"Herd model, Pa = {a}, R = {round(mean_measure_herd,2)} $\\pm$ {round(conf_herd, 2)}")
-                    elif is_Nagent_experiment:
-                        plt.plot(bin_count_herd[0], mean_count_herd, label=f"Herd model, {agent} agents, R = {round(mean_measure_herd,2)} $\\pm$ {round(conf_herd, 2)}")
+                        mean_count_norm = np.mean(np.array(count_norm), axis=0)
+                        mean_measure_norm = np.mean(cluster_measures_norm)
+                        std_measure_norm = np.std(cluster_measures_norm)
+                        conf_norm = 1.96*(std_measure_norm/np.sqrt(len(count_norm)))
+                        plt.plot(bin_count_norm[0], mean_count_norm, label=f"Model, R = {round(mean_measure_norm,2)} $\\pm$ {round(std_measure_norm, 2)}")
+                        plt.plot(bin_count_norm[0], mean_count_norm, label=f"Model, {object[1][1]} agents, R = {round(mean_measure_norm,2)} $\\pm$ {round(conf_norm, 2)}")
+
+                    if len(count_herd) > 0:
+
+                        mean_count_herd = np.mean(np.array(count_herd), axis=0)
+                        mean_measure_herd = np.mean(cluster_measures_herd)
+                        std_measure_herd = np.std(cluster_measures_herd)
+                        conf_herd = 1.96*(std_measure_herd/ np.sqrt(len(count_herd)))
+
+                        # Plot graph line with label
+                        if is_Pc_experiment:
+                            plt.plot(bin_count_herd[0], mean_count_herd, label=f"Herd model, Pc = {c}, R = {round(mean_measure_herd,2)} $\\pm$ {round(conf_herd, 2)}")
+                        elif is_Pa_Experiment:
+                            plt.plot(bin_count_herd[0], mean_count_herd, label=f"Herd model, Pa = {a}, R = {round(mean_measure_herd,2)} $\\pm$ {round(conf_herd, 2)}")
+                        elif is_Nagent_experiment:
+                            plt.plot(bin_count_herd[0], mean_count_herd, label=f"Herd model, {agent} agents, R = {round(mean_measure_herd,2)} $\\pm$ {round(conf_herd, 2)}")
 
         plt.plot(bins_count_sp500[1:], count_sp500, label=f"SP500, R = {round(std_sp500/std_gaus, 2)}")
         plt.plot(bins_count_gaus[1:], count_gaus, label="Gaussian distribution")
@@ -594,8 +671,8 @@ def plot_lorenz_curve(objects, N_agents, image_dir=None):
 
     if image_dir != None:
         plt.savefig(image_dir+'lorenzTime.png')
-    else:
-        plt.show()
+
+    plt.show()
 
 
 def plot_lorenz_curve_Nagents(objects, all_N_agents, image_dir=None):
@@ -689,8 +766,7 @@ def plot_lorenz_curve_Nagents(objects, all_N_agents, image_dir=None):
 
     if image_dir != None:
         plt.savefig(image_dir+'lorenzAgents.png')
-    else:
-        plt.show()
+    plt.show()
 
 
 def vis_volatility_series(objects, N_time):
@@ -703,38 +779,43 @@ def vis_volatility_series(objects, N_time):
     plt.show()
 
 
-def visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, i):
+def visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, i):
 
+    # Even though this is single market, we loop over Nagents because we want to plot the lorenz curve and wealth distribution for various agents
     object_list = []
-    for Pa in Pa_list:
-        for Pc in Pc_list:
-            for agents in N_agents:
-                MarketObj = management.loadSingleMarket(agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, i)
-                object_list.append(MarketObj)
+    for agents in N_agents:
+            MarketObj = management.loadSingleMarket(agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, i)
+            object_list.append(MarketObj)
 
-                # Plot Lorenz curve and wealth distribution, only for 100 agents
-                if agents == 100:
+            # Plot Lorenz curve and wealth distribution, only for 100 agents
+            if agents == 100:
 
-                    # Image directory
-                    image_dir = f'images/Nagents{agents}_Pa{Pa}_Pc{Pc}_i{i}/'
+                # Image directory
+                image_dir = f'images/Nagents{agents}_Pa{Pa}_Pc{Pc}_i{i}/'
 
-                    # Make directory
-                    if not(os.path.isdir(image_dir)):
-                        os.mkdir(image_dir)
+                # Make directory
+                if not(os.path.isdir(image_dir)):
+                    os.mkdir(image_dir)
 
-                    plot_lorenz_curve(MarketObj, agents, image_dir=image_dir)
+                print("Visualise Lorenz curve over time")
+                plot_lorenz_curve(MarketObj, agents, image_dir=image_dir)
 
     # Plot lorenz curve and wealth distribution for various agents
-    image_dir = f'images/Nagents{N_agents[0]}_Pa{Pa_list[0]}_Pc{Pc_list[0]}_i{i}/'
+    print("Visualise Lorenz curve for various amounts of agents")
+    image_dir = f'images/Nagents{N_agents[0]}_Pa{Pa}_Pc{Pc}_i{i}/'
     plot_lorenz_curve_Nagents(object_list, N_agents, image_dir=image_dir)
 
-    # Other possible visualisations for a single market
-    #vis_wealth_over_time(MarketObj, image_dir)
-    #vis_price_series([MarketObj], N_time, N_agents, image_dir)
-    #cluster_vis(MarketObj, N_time, cluster, image_dir)
+    # Other possible visualisations for a single market    
+    MarketObj = management.loadSingleMarket(N_agents[0], N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, i)
+    print("Visualise the wealth over time for a single run (100 agents)")
+    vis_wealth_over_time(MarketObj, image_dir)
+    print("Visualise clustering for singl run (100 agents)")
+    cluster_vis(MarketObj, N_time, cluster, image_dir)
 
 
 def visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, N):
 
+    print("Multiple markets: visualise price series")
     vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, N)
+    print("Multiple markets: visualise volatility clustering")
     vis_vol_cluster(0.2, 10, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, N)

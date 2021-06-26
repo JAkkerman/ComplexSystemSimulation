@@ -90,7 +90,7 @@ class Market():
         # Perform volatility forecast
         forecasts = res.forecast(reindex=True)
 
-        # 
+        # Get the volaility forecast for tomorrow 
         return np.sqrt(forecasts.variance.iloc[-1][0])/100**2
 
 
@@ -114,8 +114,7 @@ class Market():
 
     def activate_cluster(self):
         """
-        Activates one of the clusters with probability Pc,
-            randomly selects activated cluster.
+        Activates one of the clusters with probability Pc, randomly selects activated cluster.
         """
         if np.random.random() < self.Pc:
             activated_cluster = np.random.choice(self.clusters)
@@ -152,6 +151,7 @@ class Market():
             # Skip if already in the same cluster
             if trader1.in_cluster == trader2.in_cluster and trader1.in_cluster != None:
                 continue
+
             # Add trader to cluster if other trader already in cluster
             elif trader1.in_cluster != None and trader2.in_cluster == None:
                 trader1.in_cluster.add_to_cluster(trader2)
@@ -176,29 +176,33 @@ class Market():
         sorted_sell = sorted(self.sellers, key=lambda x: x.s_i)
         sorted_buy = sorted(self.buyers, key=lambda x: x.b_i, reverse=True)
 
-        p_sell = np.array([i.s_i for i in sorted_sell]) # sorted list of sell price limits
+        # Sorted lists of sell/buy price limits
+        p_sell = np.array([i.s_i for i in sorted_sell])
+        p_buy = np.array([i.b_i for i in sorted_buy])
+
+        # Total amounts of stock to buy/sell
         q_sell = np.cumsum([i.a_s for i in sorted_sell])
-        p_buy = np.array([i.b_i for i in sorted_buy]) # sorted list of buy price limits
         q_buy = np.cumsum([i.a_b for i in sorted_buy])
 
+        # Find the intersection of buy and sell curves
         intersection = self.find_intersection(p_buy, q_buy, p_sell, q_sell)
 
         if intersection == None:
             return 0, [], []
 
         # Find buyer closest to the intersection
-        buy_price_index = np.where((np.array(p_buy) - intersection) > 0,
-                                np.array(p_buy), np.inf).argmin()
-        buy_price = np.array(p_buy)[buy_price_index]
+        buy_price_index = np.where((np.array(p_buy) - intersection) > 0, np.array(p_buy), np.inf).argmin()
+        buy_price = np.array(p_buy)[buy_price_index] # clearing price
         buy_cum_quant = np.array(q_buy)[buy_price_index]
 
         # Find seller closest to the intersection
-        sell_price_index = np.where((np.array(p_sell) - buy_price) < 0,
-                                        np.array(p_sell), -np.inf).argmax()
+        sell_price_index = np.where((np.array(p_sell) - buy_price) < 0, np.array(p_sell), -np.inf).argmax()
         sell_cum_quant = np.array(q_sell)[sell_price_index]
 
         # Determine transation quantity
         transaction_q = min(sell_cum_quant, buy_cum_quant)
+
+        # Add new asset price
         self.p += [buy_price]
 
         return transaction_q, sorted_sell, sorted_buy
@@ -214,10 +218,12 @@ class Market():
         sold_q = transaction_q
         for seller in true_sellers:
             if seller != 0:
+                # Seller can fill up his order
                 if seller.a_s < sold_q:
                     seller.C += [seller.C[-1] + seller.a_s*self.p[-1]]
                     seller.A += [seller.A[-1] - seller.a_s]
                     sold_q -= seller.a_s
+                # Partially fill up sell order
                 else:
                     seller.C += [seller.C[-1] + sold_q*self.p[-1]]
                     seller.A += [seller.A[-1] - sold_q]
@@ -227,19 +233,23 @@ class Market():
         bought_q = transaction_q
         for buyer in true_buyers:
             if buyer != 0:
+                # Buyer fills up his order
                 if buyer.a_b < bought_q:
                     buyer.C += [buyer.C[-1] - buyer.a_b*self.p[-1]]
                     buyer.A += [buyer.A[-1] + buyer.a_b]
                     bought_q -= buyer.a_b
+                # Partially fill buy order
                 else:
                     buyer.C += [buyer.C[-1] - bought_q*self.p[-1]]
                     buyer.A += [buyer.A[-1] + bought_q]
                     bought_q -= bought_q
 
+        # Keep asset and cash series consistent
         for trader in self.traders:
             if (trader not in true_sellers) and (trader not in true_buyers):
                 trader.no_trade()
 
+        # Empty buyer and seller lists
         self.reset_lists()
 
 
@@ -248,34 +258,22 @@ class Market():
         Fits polynomial to buy and sell curves, finds intersection
         """
 
+        # Fit the buy and sell curves
         buyfit = np.polyfit(q_buy[5:-5], p_buy[5:-5], deg=1)
         sellfit = np.polyfit(q_sell[5:-5], p_sell[5:-5], deg=1)
 
+        # Make polynomial object
         buypol = np.poly1d(buyfit)
         sellpol = np.poly1d(sellfit)
 
         def solve_intersection(fun1, fun2, x0):
             return fsolve(lambda x : fun1(x) - fun2(x), x0)
 
+        # Find the intersection between buy and sell 
         q_intersection = solve_intersection(buypol, sellpol, 100)
         p_intersection = buypol(q_intersection[0])
 
-    # intersection = np.roots(buypol-sellpol)
-
-        # print('q: ', q_intersection, 'p: ', p_intersection)
-
-        # if len(self.p)%1000==0:
-        # q = np.arange(q_intersection+4000)
-        # plt.plot(q, buypol(q), label='buy', color='red')
-        # plt.plot(q, sellpol(q), label='sell', color='blue')
-        # plt.scatter(q_buy, p_buy, color='red')
-        # plt.scatter(q_sell, p_sell, color='blue')
-        # plt.scatter(q_intersection, p_intersection, color='black')
-        # plt.legend()
-        # plt.xlabel('Quantity')
-        # plt.ylabel('Price')
-        # plt.show()
-
+        # No intersection found
         if q_intersection[0] <= 0 or p_intersection <= 0:
             print('q: ', q_intersection[0], 'p: ', p_intersection)
 

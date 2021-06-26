@@ -64,7 +64,7 @@ def run_simulation(N_time, MarketObj, cluster):
         transaction_q, true_sellers, true_buyers = MarketObj.get_equilibrium_p()
 
         # COMMENT OUT TO VISUALISE DETERMINATION OF CLEARING PRICE
-        # vis.vis_market_cross(MarketObj, transaction_q)
+        vis.vis_market_cross(MarketObj, transaction_q)
 
         # Perform transactions and update the historic volatility
         MarketObj.perform_transactions(transaction_q, true_sellers, true_buyers)
@@ -73,11 +73,6 @@ def run_simulation(N_time, MarketObj, cluster):
         # Reset the activated cluster (if there was one)
         if cluster and activated_cluster != None:
             activated_cluster.self_destruct()
-
-    # COMMENT OUT TO IMMEDIATELY VISUALISE A SINGLE MARKET RUN
-    #vis.cluster_vis(MarketObj, N_time, cluster)
-    #vis.vis_price_series(MarketObj, N_time)
-    #vis.vis_wealth_over_time(MarketObj)
 
     return MarketObj
 
@@ -124,12 +119,12 @@ if __name__ == '__main__':
     garch_param = [1,1]
 
     # Experiment ranges
-    Pa_list = [0.0002]
-    Pc_list = [0.1]
+    Pa_list = [0.0001, 0.0002, 0.0005]
+    Pc_list = [0.1, 0.2, 0.3]
     N_agents = [100, 200, 400]
 
     # Amount of runs per configuration
-    N_concurrent = 50
+    N_concurrent = 2 ## NOTE: this was 50 before but this takes a long time
 
     # Make directories for each parameter configuration (if they don't exist yet). NB don't comment this out
     management.makeDirectories(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster)
@@ -138,14 +133,10 @@ if __name__ == '__main__':
     #with concurrent.futures.ProcessPoolExecutor(max_workers=6) as executor:
     #    values = [executor.submit(job, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, i,) for i in range(0, N_concurrent)]
 
-    # Visualisation single model run
-    #management.loadSingleMarket(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[1], Pc_list[0], cluster, 0)
 
-
-    # Visualisation all model runs of single parameter configuration
-    # vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, N_concurrent)
-    # for Pa in Pa_list:
-    #     for Pc in Pc_list:
-    #         vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, N_concurrent)
-
+    # Visualisation all model runs of all parameter configurations
+    vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, N_concurrent)
+    # Visualisation single model run (first run)
+    vis.visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[1], Pc_list[0], cluster, 0)
+        
     sys.exit()
