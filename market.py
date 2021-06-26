@@ -1,34 +1,35 @@
 import numpy as np
-from numpy.polynomial.chebyshev import chebfit
 from scipy.optimize import fsolve
-import sys
-
 from arch import arch_model
-import datetime as dt
-import arch.data.sp500
 import pandas as pd
 
-import matplotlib.pyplot as plt # TEMP
-
+# Our own defined modules
 from cluster import Cluster
 from data import calc_norm_return
 
 
 class Market():
-    def __init__(self, p, cluster, garch, garch_param, Pa, Pc,
-                 T=20, k=3.5, mu=1.01, hist_vol=0.1):
+    def __init__(self, p, cluster, garch, garch_param, Pa, Pc):
+        """
+        Initialise a market.
+
+        @param p                Initial price
+        @param cluster          Whether to do clustering or not
+        @param garch            Whether to determine volatility with GARCH or not
+        @garch_param
+        @param Pa               Probability of activating a cluster
+        @param Pc               Probability of forming a pair between two agents, i.e clustering probability
+        @param hist_vol         Initial volatility, default=0.1
+        """
         self.p = [p]
         self.cluster=cluster
         self.traders = []
         self.buyers = []
         self.sellers = []
         self.clusters = []
-        self.T = T
-        self.k = k
-        self.mu = mu
         self.Pc = Pc
         self.Pa = Pa
-        self.hist_vol = hist_vol # TODO: aanpassen aan historische vol
+        self.hist_vol = 0.1 # Value used by Raberto et al (2001)
         self.sigma = []
         self.pairs = []
         self.avg_degree = []
@@ -39,20 +40,20 @@ class Market():
 
         self.update_sigma()
 
-
     def update_sigma(self):
         """
-        Updates sigma.
+        Updates the volatility.
         """
-        # Original volatility prediction, as specified in Raberto et al (2001)
-        if not self.garch:
-            self.sigma += [self.k*self.hist_vol]
 
-        # GARCH fitting, if selected
+        # Original volatility prediction, as specified in the paper of Raberto et al (2001)
+        if not self.garch:
+            self.sigma += [3.5 * self.hist_vol] # 3.5 is value used by Raberto et al (2001)
+
+        # GARCH fitting
         else:
             # If lenght of price series is smaller than 20, use default value
-            if len(self.p) < 100:
-                self.sigma += [self.k*self.hist_vol]
+            if len(self.p) < 20:
+                self.sigma += [3.5 * self.hist_vol] # 3.5 is value used by Raberto et al (2001)
             # Otherwise, fit GARCH and predict one time step in the future
             else:
                 self.sigma += [self.fit_GARCH()]
@@ -60,12 +61,17 @@ class Market():
 
     def update_hist_vol(self):
         """
-        Updates historical volatility by taking the standard deviation of the
-            past price series.
+        Updates historical volatility by taking the standard deviation of the past price series.
         """
-        if len(self.p) > self.T:
-            returns = np.log(np.roll(np.array(self.p[:-self.T]), shift=-1)/np.array(self.p[:-self.T]))
+
+        # Only update if simulation has ran lang enough.
+        if len(self.p) > 20:
+
+            # Std of log-price returns of time window of 20 time steps
+            returns = np.log(np.roll(np.array(self.p[:-20]), shift=-1) / np.array(self.p[:-20]))
             self.hist_vol = np.std(returns)
+
+            # Update volatilty for this time-step
             self.update_sigma()
 
 
@@ -73,19 +79,18 @@ class Market():
         """
         Fits GARCH model to previous price data.
         """
-        # Get last 20-100 data points
+        # Get last 20-100 data points and calculate the normalised returns
         price_data = pd.DataFrame(self.p[-min(len(self.p)-1, 100):])
-        # returns = 100*price_data.pct_change().dropna()
-        returns = 100*calc_norm_return(price_data, False)
+        returns = 100 * calc_norm_return(price_data, False)
 
+        # Make GARCH model
         am = arch_model(returns, p=self.garch_param[0], q=self.garch_param[1])
         res = am.fit(disp="off")
-        # print("jee")
+  
+        # Perform volatility forecast
         forecasts = res.forecast(reindex=True)
 
-        # print(forecasts.variance)
-
-        # print(np.sqrt(forecasts.variance.iloc[-1][0]))
+        # 
         return np.sqrt(forecasts.variance.iloc[-1][0])/100**2
 
 
@@ -175,44 +180,6 @@ class Market():
         q_sell = np.cumsum([i.a_s for i in sorted_sell])
         p_buy = np.array([i.b_i for i in sorted_buy]) # sorted list of buy price limits
         q_buy = np.cumsum([i.a_b for i in sorted_buy])
-
-        # Compute distances between points
-        # p_diff = p_buy[:,np.newaxis] - p_sell
-        # q_diff = q_buy[:,np.newaxis] - q_sell
-
-        # Only distances that are
-        # distances = np.sqrt(p_diff**2 + q_diff**2)
-
-        # distances = (distances*(p_diff>0)*(np.roll((p_diff<0), -1)))
-        # distances[distances==0] = np.nan
-
-        # print(distances)
-
-        # plt.imshow(distances)
-        # plt.scatter(sell_price_index, buy_price_index)
-        # plt.show()
-
-        # buy_price_index, sell_price_index = np.unravel_index(np.nanargmin(distances, axis=None), distances.shape)
-
-        # clearing_price = p_buy[buy_price_index]
-        # if clearing_price == 0.0:
-        #     return None, [], []
-        # print(buy_price_index, sell_price_index)
-        # print(clearing_price)
-        # buy_cum_quant = np.array(q_buy)[buy_price_index]
-
-        # # If we had to take a buyer lower down the line, select the new closest
-        # sell_cum_quant = np.array(q_sell)[sell_price_index]
-
-        # transaction_q = min(sell_cum_quant, buy_cum_quant)
-        # self.p += [clearing_price]
-
-        # plt.figure(figsize=(10,5))
-        # plt.scatter(q_buy, p_buy)
-        # plt.scatter(q_sell, p_sell)
-        # plt.scatter(q_buy[buy_price_index], p_buy[buy_price_index], color='red')
-        # plt.scatter(q_sell[sell_price_index], p_sell[sell_price_index], color='green')
-        # plt.show()
 
         intersection = self.find_intersection(p_buy, q_buy, p_sell, q_sell)
 
