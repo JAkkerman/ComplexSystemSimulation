@@ -34,6 +34,7 @@ def vis_market_cross(MarketObj, transaction_q):
 
     X = np.arange(np.average(q_sell) - 2000, np.average(q_sell) + 2000)
 
+    # Plot figure
     plt.figure()
     plt.scatter(q_sell, p_sell, label='Sell')
     plt.plot(X, supply(X))
@@ -69,7 +70,7 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
     plt.figure(dpi=150)
 
     #####################
-    #  Start plotting and fitting gaussian and S&P 500
+    #  Start plotting and fitting Gaussian and S&P 500
     gaus_bins_count_list, gaus_cdf_list = [], []
     for i in range(100):
         gaus_bins_count, gaus_cdf = sample_gauss(N_time)
@@ -78,15 +79,15 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
 
     SP500_bins_count, SP500_cdf = SP500_pl()
 
-    fit_comparison_array_sp500 = np.zeros((100*3, 5))
-    j = 1
+    fit_comparison_array_sp500 = np.zeros((100*3, 5)) # initialize fit comparison array
+    j = 1 # initialize j variable for shifting start of fit at each iteration
     sp500_model_array = np.array((SP500_cdf, SP500_bins_count[1:]))
 
     # fitting power law distribution to tail of stock returns
     for i in range(1, int(100*2)):
 
-        x_values = np.log10(np.delete(sp500_model_array[1], np.where(sp500_model_array[1] < j)))
-        y_values = np.log10(np.delete(sp500_model_array[0], np.where(sp500_model_array[1] < j)))
+        x_values = np.log10(np.delete(sp500_model_array[1], np.where(sp500_model_array[1] < j))) # take x values greater than current j
+        y_values = np.log10(np.delete(sp500_model_array[0], np.where(sp500_model_array[1] < j))) # take y values corresponding to x values greater than current j
 
         fit_comparison_array_sp500[i-1, 0] = x_values[0] # starting x_value for fit
         fit_comparison_array_sp500[i-1, 1] = x_values[-1] # final x_value for fit
@@ -106,15 +107,15 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
 
     for k in range(100):
 
-        fit_comparison_array_gaus = np.zeros((100*3, 5))
-        j = 1
+        fit_comparison_array_gaus = np.zeros((100*3, 5)) # initialize fit comparison array
+        j = 1 # initialize j variable for shifting start of fit at each iteration
         gaus_model_array = np.array((gaus_cdf_list[k], gaus_bins_count_list[k][1:]))
 
         # fitting power law distribution to tail of stock returns
         for i in range(1, int(100*2)):
 
-            x_values = np.log10(np.delete(gaus_model_array[1], np.where(gaus_model_array[1] < j)))
-            y_values = np.log10(np.delete(gaus_model_array[0], np.where(gaus_model_array[1] < j)))
+            x_values = np.log10(np.delete(gaus_model_array[1], np.where(gaus_model_array[1] < j))) # take x values greater than current j
+            y_values = np.log10(np.delete(gaus_model_array[0], np.where(gaus_model_array[1] < j))) # take y values corresponding to x values greater than current j
 
             fit_comparison_array_gaus[i-1, 0] = x_values[0] # starting x_value for fit
             fit_comparison_array_gaus[i-1, 1] = x_values[-1] # final x_value for fit
@@ -210,7 +211,7 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
                         df = pd.DataFrame(object[0].p)
                         df = calc_norm_return(df, True)
 
-                        if object[1][0]:
+                        if object[1][0]: # determine whether clustering active or not
                             cdf_herd[counter_herd, :], bins_count_herd[counter_herd, :] = create_cdf(df)
                             counter_herd += 1
                             N_agent_list_herd.append(object[1][1])
@@ -239,12 +240,12 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
                         # Regular model, without agents clustering
                         best_fit_array = np.zeros((counter_norm, 4))
                         for k in range(counter_norm):
-                            fit_comparison_array = np.zeros((N_agent_list_norm[0]*3, 5))
-                            j = 1
+                            fit_comparison_array = np.zeros((N_agent_list_norm[0]*3, 5)) # initialize array for fit comparison
+                            j = 1 # initialize j variable for shifting start of fit at each iteration
                             model_array = np.array((cdf[k], bins_count[k][1:]))
                             for i in range(1, int(N_agent_list_norm[0]*2)):
-                                x_values = np.log10(np.delete(model_array[1], np.where(model_array[1] < j)))
-                                y_values = np.log10(np.delete(model_array[0], np.where(model_array[1] < j)))
+                                x_values = np.log10(np.delete(model_array[1], np.where(model_array[1] < j))) # take x values greater than current j
+                                y_values = np.log10(np.delete(model_array[0], np.where(model_array[1] < j))) # take y values corresponding to x values greater than current j
                                 fit_comparison_array[i-1, 0] = x_values[0] # starting x_value for fit
                                 fit_comparison_array[i-1, 1] = x_values[-1] # final x_value for fit
                                 fit_comparison_array[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1) # fit line
@@ -271,13 +272,13 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
                         mean_bin_herd = np.mean(bins_count_herd, axis=0)
                         best_fit_herd_array = np.zeros((counter_herd, 4))
                         for k in range(counter_herd):
-                            fit_comparison_array_herd = np.zeros((N_agent_list_herd[0]*3, 5))
-                            j = 1
+                            fit_comparison_array_herd = np.zeros((N_agent_list_herd[0]*3, 5)) # initialize array for fit comparison
+                            j = 1 # initialize j variable for shifting start of fit at each iteration
                             herd_model_array = np.array((cdf_herd[k], bins_count_herd[k][1:]))
                             for i in range(1, int(N_agent_list_herd[0]*2)):
 
-                                x_values = np.log10(np.delete(herd_model_array[1], np.where(herd_model_array[1] < j)))
-                                y_values = np.log10(np.delete(herd_model_array[0], np.where(herd_model_array[1] < j)))
+                                x_values = np.log10(np.delete(herd_model_array[1], np.where(herd_model_array[1] < j))) # take x values greater than current value of j
+                                y_values = np.log10(np.delete(herd_model_array[0], np.where(herd_model_array[1] < j))) # take y values corresponding to x values greater than current value of j
                                 fit_comparison_array_herd[i-1, 0] = x_values[0] # starting x_value for fit
                                 fit_comparison_array_herd[i-1, 1] = x_values[-1] # final x_value for fit
                                 fit_comparison_array_herd[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1)  # fit line
@@ -446,7 +447,7 @@ def vis_vol_cluster(highp, window, N_agents, N_time, C, A, p, garch, garch_n, ga
                         count_series, bins_count_series = np.histogram(series, bins=[i for i in range(window+1)])
                         std_series = np.std(series)
                         cluster_measure = std_series/std_gaus
-                        if object[1][0]:
+                        if object[1][0]: # determine whether clustering active or not
                             cluster_measures_herd.append(cluster_measure)
                             bin_count_herd.append(bins_count_series[1:])
                             count_herd.append(count_series)
@@ -575,9 +576,9 @@ def plot_lorenz_curve(objects, N_agents, image_dir=None):
     for t in all_t:
         for MarketObj in [objects]:
             # Compute Lorenz curve and Gini coefficient
-            sorted_wealth = sorted(MarketObj.traders, key=lambda x: x.A[t-1]*MarketObj.p[t-1] + x.C[t-1])
-            sorted_wealth = [i.A[t-1]*MarketObj.p[t-1] + i.C[t-1] for i in sorted_wealth]
-            cum_wealth = np.cumsum(sorted_wealth)
+            sorted_wealth = sorted(MarketObj.traders, key=lambda x: x.A[t-1]*MarketObj.p[t-1] + x.C[t-1]) # collect traders in list and sort by wealth
+            sorted_wealth = [i.A[t-1]*MarketObj.p[t-1] + i.C[t-1] for i in sorted_wealth] # take previous timestep values only of cash and portfolios for each trader
+            cum_wealth = np.cumsum(sorted_wealth) # store cumulative quantities of wealth in list
 
             all_sorted_wealth[t] += [sorted_wealth]
             all_cum_wealth[t] += [cum_wealth]
@@ -598,14 +599,11 @@ def plot_lorenz_curve(objects, N_agents, image_dir=None):
         model_array = np.array((cdf, bins_count[1:]))
         fit_comparison_array = np.zeros((len(bins_count), 5))
 
-        best_fit_array = np.zeros(5)
-
-        j = 0
-
+        best_fit_array = np.zeros(5) # initialize array to store best fit parameters
         for i in range(1, len(bins_count)-1):
 
-            x_values = np.log10(model_array[1, i:])
-            y_values = np.log10(model_array[0, i:])
+            x_values = np.log10(model_array[1, i:]) # take x values starting at entry i in matrix
+            y_values = np.log10(model_array[0, i:]) # take y values corresponding to x value sstarting at entry i in matrix
 
             fit_comparison_array[i-1, 0] = x_values[0]  # starting x_value for fit
             fit_comparison_array[i-1, 1] = x_values[-1]  # final x_value for fit
@@ -661,9 +659,9 @@ def plot_lorenz_curve_Nagents(objects, all_N_agents, image_dir=None):
         N_agents = len(MarketObj.traders)
 
         # Compute Lorenz curve and Gini coefficient
-        sorted_wealth = sorted(MarketObj.traders, key=lambda x: x.A[-1]*MarketObj.p[-1] + x.C[-1])
-        sorted_wealth = [i.A[-1]*MarketObj.p[-1] + i.C[-1] for i in sorted_wealth]
-        cum_wealth = np.cumsum(sorted_wealth)
+        sorted_wealth = sorted(MarketObj.traders, key=lambda x: x.A[-1]*MarketObj.p[-1] + x.C[-1]) # collect traders in list and sort by wealth
+        sorted_wealth = [i.A[-1]*MarketObj.p[-1] + i.C[-1] for i in sorted_wealth] # take last values only of cash and portfolios for each trader
+        cum_wealth = np.cumsum(sorted_wealth) # store cumulative quantities of wealth in list
 
         all_sorted_wealth[N_agents] += [sorted_wealth]
         all_cum_wealth[N_agents] += [cum_wealth]
