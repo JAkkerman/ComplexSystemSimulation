@@ -92,16 +92,16 @@ def job(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list
         for Pc in Pc_list:
             for N_agent in N_agents:
 
-            # Run single simulation for this parameter config
-            MarketObj = initialise(N_agent, p, A, C, cluster, garch, garch_param, Pa, Pc)
-            MarketObj = run_simulation(N_time, MarketObj, cluster)
+                # Run single simulation for this parameter config
+                MarketObj = initialise(N_agent, p, A, C, cluster, garch, garch_param, Pa, Pc)
+                MarketObj = run_simulation(N_time, MarketObj, cluster)
 
-            # Save the results form this run
-            management.saveSingleMarket(N_agent, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, i, MarketObj)
+                # Save the results form this run
+                management.saveSingleMarket(N_agent, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, i, MarketObj)
 
-            # Delete market object
-            del MarketObj
-            gc.collect()
+                # Delete market object
+                del MarketObj
+                gc.collect()
 
     return " Done"
 
