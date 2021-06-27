@@ -111,6 +111,7 @@ if __name__ == '__main__':
         print("Execute 'python main.py collect' to collect data or 'python main.py visualise' for visualization of stored data.")
         sys.exit()
 
+    # N_time: model iterations, cluster: use agents clustering, C: starting capital of agents, A: starting assets of agents, p: starting asset price.
     N_time = 10000
     cluster = True
     C = 30000

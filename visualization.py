@@ -94,6 +94,22 @@ def vis_market_cross(MarketObj, transaction_q):
 
 
 def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, N):
+    """
+    Log log plots of stock returns with fitted power law distribution to fat-tails.
+
+    @param N_agents         |
+    @param N_time           |
+    @param C                |
+    @param A                |-  Basic model parameters
+    @param p                |
+    @param garch            |
+    @param garch_n          |
+    @param garch_param      |
+    @param Pa_list          list, containing probability of clustering formation between two traders
+    @param Pc_list          list, containing probability of cluster activation
+    @param cluster          boolean, True if clusters between traders are formed
+    @param N                integer, number of samples to average
+    """
 
     plt.figure(dpi=150)
 
@@ -110,6 +126,8 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
     fit_comparison_array_sp500 = np.zeros((100*3, 5))
     j = 1
     sp500_model_array = np.array((SP500_cdf, SP500_bins_count[1:]))
+
+    # fitting power law distribution to tail of stock returns
     for i in range(1, int(100*2)):
 
         x_values = np.log10(np.delete(sp500_model_array[1], np.where(sp500_model_array[1] < j)))
@@ -124,8 +142,6 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
         fit_comparison_array_sp500[i-1, 4] = correlation_xy**2 # add R^2 value to array
         j = j + 0.01
 
-    #print(f'Normalized returns >= {x_values[0]}, R-squared value: {rsquared}, power law fit slope: {fit_comparison_array_herd[i-1, 3]}')
-
     print(f'Slope for best fit SP500: {fit_comparison_array_sp500[np.argmax(fit_comparison_array_sp500[:,4]), 3]}')
     slope_sp500 = fit_comparison_array_sp500[np.argmax(fit_comparison_array_sp500[:, 4]), 3] # slope herd
 
@@ -139,6 +155,8 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
         fit_comparison_array_gaus = np.zeros((100*3, 5))
         j = 1
         gaus_model_array = np.array((gaus_cdf_list[k], gaus_bins_count_list[k][1:]))
+
+        # fitting power law distribution to tail of stock returns
         for i in range(1, int(100*2)):
 
             x_values = np.log10(np.delete(gaus_model_array[1], np.where(gaus_model_array[1] < j)))
@@ -152,8 +170,6 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
             rsquared = correlation_xy**2
             fit_comparison_array_gaus[i-1, 4] = correlation_xy**2 # add R^2 value to array
             j = j + 0.01
-
-        #print(f'Normalized returns >= {x_values[0]}, R-squared value: {rsquared}, power law fit slope: {fit_comparison_array_herd[i-1, 3]}')
 
         print(f'Slope for best fit Gaus: {fit_comparison_array_gaus[np.argmax(fit_comparison_array_gaus[:,4]), 3]}')
         best_fit_array_gaus[k][0] = fit_comparison_array_gaus[np.argmax(fit_comparison_array_gaus[:, 4]), 0] # starting x herd
@@ -267,7 +283,7 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
                         mean_bin = np.mean(bins_count, axis=0)
 
                         # Power law fits
-                        # Regular model
+                        # Regular model, without agents clustering
                         best_fit_array = np.zeros((counter_norm, 4))
                         for k in range(counter_norm):
                             fit_comparison_array = np.zeros((N_agent_list_norm[0]*3, 5))
@@ -285,8 +301,6 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
                                 fit_comparison_array[i-1, 4] = correlation_xy**2 # add R^2 value to array
                                 j = j + 0.01
 
-                                #print(f'Normalized returns >= {x_values[0]}, R-squared value: {rsquared}, power law fit slope: {fit_comparison_array[i-1, 3]}')
-
                             print(f'Slope for best fit regular model: {fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 3]}')
                             best_fit_array[k][0] = fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 0] #starting x
                             best_fit_array[k][1] = fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 1] # final x
@@ -297,11 +311,9 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
                         std_values_norm = np.std(best_fit_array, axis=0)
                         confint_norm = 1.96*(std_values_norm[3]/np.sqrt(15))
 
-                        # plt.plot([10**mean_values_norm[0], 10**mean_values_norm[1]], [10**(mean_values_norm[2] + mean_values_norm[3]*mean_values_norm[0]), 10**(mean_values_norm[2] + mean_values_norm[3]*mean_values_norm[1])],
-                        #          label=f'Model fit, slope = {mean_values_norm[3]:.3f} $\\pm$ {std_values_norm[3]:.2f}', color='black') # plot regular model power law fit
                         plt.scatter(mean_bin[1:], mean_cdf, label=label_list_norm[0] + f", slope = {round(mean_values_norm[3],2)} $\\pm$ {round(confint_norm,2)}")
 
-                    # Herd model
+                    # Herd model, with agent clustering
                     if cdf_herd.shape[0] > 0:
                         mean_cdf_herd = np.mean(cdf_herd, axis=0)
                         mean_bin_herd = np.mean(bins_count_herd, axis=0)
@@ -333,12 +345,9 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
                         std_values_herd = np.std(best_fit_herd_array, axis=0)
                         confint_herd = 1.96*(std_values_herd[3]/np.sqrt(15))
 
-            # plt.plot([10**mean_values_herd[0], 10**mean_values_herd[1]], [10**(mean_values_herd[2] + mean_values_herd[3]*mean_values_herd[0]), 10**(mean_values_herd[2] + mean_values_herd[3]*mean_values_herd[1])],
-            #          label=f'Herd model fit, slope = {mean_values_herd[3]:.3f} $\\pm$ {std_values_herd[3]:.2f}', color='black', linestyle='--') # plot herd model power law fit
                     plt.scatter(mean_bin_herd[1:], mean_cdf_herd, label=label_list_herd[0] + f", slope = {round(mean_values_herd[3],2)} $\\pm$ {round(confint_herd,2)}")
 
         # Plotting
-        # plt.scatter(gaus_bins_count[1:], gaus_cdf, label=f"Gaussian, slope = {round(slope_gaus, 2)}", marker='.')
         plt.scatter(mean_bin_gaus[1:], mean_cdf_gaus, label=f"Gaussian, slope = {round(mean_slope_gaus[3], 2)} $\\pm$ {round(confint_gaus, 2)}", marker='.')
         plt.scatter(SP500_bins_count[1:], SP500_cdf, label=f"S&P 500, slope = {round(slope_sp500,2)}", marker='.')
         plt.yscale('log')
@@ -375,19 +384,21 @@ def vis_wealth_over_time(MarketObj, image_dir=None):
 
 
 def cluster_vis(MarketObj, t, cluster, image_dir=None):
+    """
+    if clusters are enabled, will plot normalized returns against the normalized average degree of random graph at each iteration
+    @param MarketObj        Singular Market Object
+    @param t                integer, model iterations
+    @param cluster          boolean, True if clusters are enabled
+    """
     if cluster:
 
         ret = calc_norm_return(pd.DataFrame(MarketObj.p), False)
-        # max_val, min_val =  max(MarketObj.avg_degree),  min(MarketObj.avg_degree)
         mean_val, std_val = np.mean(MarketObj.avg_degree),  np.std(MarketObj.avg_degree)
-        # norm_degree = list(map(lambda x: (x - min_val)/(max_val - min_val), MarketObj.avg_degree))
         norm_degree = list(map(lambda x: (x - mean_val) / (std_val), MarketObj.avg_degree))
 
         plt.plot(np.linspace(0, t-1, t-1), ret.values, color="blue", label="Stock returns", linewidth=0.5)
         plt.plot(np.linspace(0, t, t), norm_degree, color="orange", label="Avg network degree")
         plt.xlabel("Time")
-        plt.xlim(450,850)
-        # plt.ylabel("Normalized average network degree")
         plt.legend()
         plt.title("100 agents, Pa = 0.0002, Pc = 0.1")
 
@@ -397,7 +408,25 @@ def cluster_vis(MarketObj, t, cluster, image_dir=None):
 
 
 def vis_vol_cluster(highp, window, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, N):
+    """
+    Visualises volatility clustering graphs based on the method by Tseng and Li for multiple Pa, Pc and number of agents.
+    Method is based on a rolling window in which the number of returns are counted that exceed a pre determined threshold.
 
+    @param highp            float between 0 and 1, percentile highest returns to be used as threshold
+    @param window           integer, size of rolling window
+    @param N_agents         |
+    @param N_time           |
+    @param C                |
+    @param A                |-  Basic model parameters
+    @param p                |
+    @param garch            |
+    @param garch_n          |
+    @param garch_param      |
+    @param Pa_list          list, containing probability of clustering formation between two traders
+    @param Pc_list          list, containing probability of cluster activation
+    @param cluster          boolean, True if clusters between traders are formed
+    @param N                integer, number of samples to average
+    """
 
     cluster_gaus, cluster_sp500 = vol_cluster(None, highp, window, N_time, True)
     count_gaus, bins_count_gaus = np.histogram(cluster_gaus, bins=[i for i in range(window+1)])
@@ -524,6 +553,7 @@ def vis_vol_cluster(highp, window, N_agents, N_time, C, A, p, garch, garch_n, ga
 def plot_wealth_dist(MarketObj, image_dir=None):
     """
     Plots the wealth distribution alone
+    @param MarketObj        Single Market Object
     """
     fig = plt.figure(figsize=(5, 5))
 
@@ -581,6 +611,8 @@ def plot_wealth_dist(MarketObj, image_dir=None):
 def plot_lorenz_curve(objects, N_agents, image_dir=None):
     """
     Plots the Lorenz curve
+    @param objects          list of Market Objects
+    @param N_agents         integer, number of agents in model
     """
     fig, [ax1, ax2] = plt.subplots(1, 2, figsize=(10, 5))
 
@@ -589,8 +621,6 @@ def plot_lorenz_curve(objects, N_agents, image_dir=None):
     all_sorted_wealth = {t: [] for t in all_t}
     all_cum_wealth = {t: [] for t in all_t}
 
-    # N_time = len(MarketObj[0].p)
-    # all_t = [int(0.1*N_time), int(0.5*N_time), N_time]
 
     for t in all_t:
         for MarketObj in [objects]:
@@ -604,9 +634,6 @@ def plot_lorenz_curve(objects, N_agents, image_dir=None):
 
         sorted_wealth = np.average(all_sorted_wealth[t], axis=0)
         cum_wealth = np.average(all_cum_wealth[t], axis=0)
-
-        # print(sorted_wealth)
-        # print(cum_wealth)
 
         X = np.linspace(0, 1, len(MarketObj.traders))
         G = np.abs(1 - sum([(X[i+1]-X[i])*(cum_wealth[i+1]/sum(sorted_wealth)+cum_wealth[i]/sum(sorted_wealth))
@@ -623,18 +650,12 @@ def plot_lorenz_curve(objects, N_agents, image_dir=None):
 
         best_fit_array = np.zeros(5)
 
-        # print(len(cdf), len(bins_count))
-
         j = 0
 
         for i in range(1, len(bins_count)-1):
 
-            # x_values = np.log10(np.delete(model_array[1], np.where(model_array[1] < j)))
-            # y_values = np.log10(np.delete(model_array[0], np.where(model_array[1] < j)))
             x_values = np.log10(model_array[1, i:])
             y_values = np.log10(model_array[0, i:])
-
-            # print('y0', y_values[0])
 
             fit_comparison_array[i-1, 0] = x_values[0]  # starting x_value for fit
             fit_comparison_array[i-1, 1] = x_values[-1]  # final x_value for fit
@@ -643,11 +664,7 @@ def plot_lorenz_curve(objects, N_agents, image_dir=None):
             correlation_xy = correlation_matrix[0, 1]
             rsquared = correlation_xy**2
             fit_comparison_array[i-1, 4] = correlation_xy**2  # add R^2 value to array
-            # j = j + 0.01
 
-        # print(fit_comparison_array)
-
-        # print(f'Slope for best fit Gaus: {fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 3]}')
         best_fit_array[0] = fit_comparison_array[np.nanargmax(fit_comparison_array[:, 4]), 0] # starting x herd
         best_fit_array[1] = fit_comparison_array[np.nanargmax(fit_comparison_array[:, 4]), 1] # final x herd
         best_fit_array[2] = fit_comparison_array[np.nanargmax(fit_comparison_array[:, 4]), 2] # intercept herd
@@ -681,6 +698,8 @@ def plot_lorenz_curve(objects, N_agents, image_dir=None):
 def plot_lorenz_curve_Nagents(objects, all_N_agents, image_dir=None):
     """
     Plots the Lorenz curve
+    @param objects          list of Market Objects
+    @param all_N_agents     list of number of agents in model
     """
 
     fig, [ax1, ax2] = plt.subplots(1, 2, figsize=(10, 5))
@@ -705,7 +724,6 @@ def plot_lorenz_curve_Nagents(objects, all_N_agents, image_dir=None):
         sorted_wealth = np.average(all_sorted_wealth[N_agents], axis=0)
         cum_wealth = np.average(all_cum_wealth[N_agents], axis=0)
 
-        # print(cum_wealth)
         X = np.linspace(0, 1, N_agents)
         G = np.abs(1 - sum([(X[i+1]-X[i])*(cum_wealth[i+1]/sum(sorted_wealth)+cum_wealth[i]/sum(sorted_wealth))
                             for i in range(N_agents-1)]))
@@ -723,12 +741,8 @@ def plot_lorenz_curve_Nagents(objects, all_N_agents, image_dir=None):
 
         for i in range(1, len(bins_count)-1):
 
-            # x_values = np.log10(np.delete(model_array[1], np.where(model_array[1] < j)))
-            # y_values = np.log10(np.delete(model_array[0], np.where(model_array[1] < j)))
             x_values = np.log10(model_array[1, i:])
             y_values = np.log10(model_array[0, i:])
-
-            # print('y0', y_values[0])
 
             fit_comparison_array[i-1, 0] = x_values[0]  # starting x_value for fit
             fit_comparison_array[i-1, 1] = x_values[-1]  # final x_value for fit
@@ -737,11 +751,7 @@ def plot_lorenz_curve_Nagents(objects, all_N_agents, image_dir=None):
             correlation_xy = correlation_matrix[0, 1]
             rsquared = correlation_xy**2
             fit_comparison_array[i-1, 4] = correlation_xy**2  # add R^2 value to array
-            # j = j + 0.01
 
-        # print(fit_comparison_array)
-
-        # print(f'Slope for best fit Gaus: {fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 3]}')
         best_fit_array[0] = fit_comparison_array[np.nanargmax(fit_comparison_array[:, 4]), 0] # starting x herd
         best_fit_array[1] = fit_comparison_array[np.nanargmax(fit_comparison_array[:, 4]), 1] # final x herd
         best_fit_array[2] = fit_comparison_array[np.nanargmax(fit_comparison_array[:, 4]), 2] # intercept herd
@@ -773,6 +783,11 @@ def plot_lorenz_curve_Nagents(objects, all_N_agents, image_dir=None):
 
 
 def vis_volatility_series(objects, N_time):
+    """
+    Plots time series of asset volatility
+    @param objects          list of Market Objects
+    @param N_time           Integer, model iterations
+    """
     x = np.linspace(0, len(objects[0][0].sigma), len(objects[0][0].sigma))
     for object in objects:
         vol = object[0].sigma
@@ -783,6 +798,9 @@ def vis_volatility_series(objects, N_time):
 
 
 def visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, i):
+    """
+    Plot function for single Market Objects
+    """
 
     # Even though this is single market, we loop over Nagents because we want to plot the lorenz curve and wealth distribution for various agents
     object_list = []
@@ -817,6 +835,9 @@ def visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garc
 
 
 def visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, N):
+    """
+    Plot function for multiple Market Objects
+    """
 
     print("Multiple markets: visualise price series")
     vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa, Pc, cluster, N)
