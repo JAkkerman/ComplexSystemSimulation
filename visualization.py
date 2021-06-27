@@ -11,6 +11,12 @@ from data import calc_norm_return, create_cdf, curve_fit_log, sample_gauss, SP50
 
 
 def vis_market_cross(MarketObj, transaction_q):
+    """
+    Plot of market cross obtained from buy and sell orders.
+
+    @object MarketObj       Market object
+    @param transaction_q    Transaction quantity
+    """
 
     sorted_sell = sorted(MarketObj.sellers, key=lambda x: x.s_i)[10:-10] # collect seller agents in list and sort by limit price
     sorted_buy = sorted(MarketObj.buyers, key=lambda x: x.b_i)[::-1][10:-10] # collect buyer agents in list and sort by limit price
