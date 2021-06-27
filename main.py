@@ -107,6 +107,10 @@ def job(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list
 
 if __name__ == '__main__':
 
+    if len(sys.argv) != 2:
+        print("Execute 'python main.py collect' to collect data or 'python main.py visualise' for visualization of stored data.")
+        sys.exit()
+
     N_time = 10000
     cluster = True
     C = 30000
@@ -130,13 +134,16 @@ if __name__ == '__main__':
     management.makeDirectories(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster)
 
     # Do experiments for all Pa and Pc parameter combinations
-    #with concurrent.futures.ProcessPoolExecutor(max_workers=6) as executor:
-    #    values = [executor.submit(job, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, i,) for i in range(0, N_concurrent)]
+    if sys.argv[1] == "collect":
+        with concurrent.futures.ProcessPoolExecutor(max_workers=6) as executor:
+           values = [executor.submit(job, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, i,) for i in range(0, N_concurrent)]
 
+    if sys.argv[1] == "visualise":
+        # Visualisation all model runs of all parameter configurations
+        vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, N_concurrent)
+        # Visualisation single model run (first run)
+        vis.visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[1], Pc_list[0], cluster, 0)
 
-    # Visualisation all model runs of all parameter configurations
-    vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, N_concurrent)
-    # Visualisation single model run (first run)
-    vis.visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[1], Pc_list[0], cluster, 0)
-
-    sys.exit()
+    else:
+        print("Execute 'python main.py collect' to collect data or 'python main.py visualise' for visualization of stored data.")
+        sys.exit()
