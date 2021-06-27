@@ -108,7 +108,7 @@ def job(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list
 if __name__ == '__main__':
 
     if len(sys.argv) != 2:
-        print("Execute 'python main.py collect' to collect data or 'python main.py visualise' for visualization of stored data.")
+        print("Execute 'python main.py collect' to collect data or 'python main.py visualize' for visualization of stored data.")
         sys.exit()
 
     # N_time: model iterations, cluster: use agents clustering, C: starting capital of agents, A: starting assets of agents, p: starting asset price.
@@ -130,21 +130,23 @@ if __name__ == '__main__':
 
     # Amount of runs per configuration
     N_concurrent = 2 ## NOTE: this was 50 before but this takes a long time
+    # number of CPU cores maximally used to collect data
+    N_cores = 6
 
     # Make directories for each parameter configuration (if they don't exist yet). NB don't comment this out
     management.makeDirectories(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster)
 
     # Do experiments for all Pa and Pc parameter combinations
     if sys.argv[1] == "collect":
-        with concurrent.futures.ProcessPoolExecutor(max_workers=6) as executor:
+        with concurrent.futures.ProcessPoolExecutor(max_workers=N_cores) as executor:
            values = [executor.submit(job, N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, i,) for i in range(0, N_concurrent)]
 
-    if sys.argv[1] == "visualise":
+    if sys.argv[1] == "visualize":
         # Visualisation all model runs of all parameter configurations
         vis.visualiseMultipleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list, Pc_list, cluster, N_concurrent)
         # Visualisation single model run (first run)
         vis.visualiseSingleMarketResults(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_list[1], Pc_list[0], cluster, 0)
 
     else:
-        print("Execute 'python main.py collect' to collect data or 'python main.py visualise' for visualization of stored data.")
+        print("Execute 'python main.py collect' to collect data or 'python main.py visualize' for visualization of stored data.")
         sys.exit()
