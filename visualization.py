@@ -136,10 +136,9 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
         fit_comparison_array_sp500[i-1, 0] = x_values[0] # starting x_value for fit
         fit_comparison_array_sp500[i-1, 1] = x_values[-1] # final x_value for fit
         fit_comparison_array_sp500[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1) # fit line
-        correlation_matrix = np.corrcoef(x_values, y_values)
-        correlation_xy = correlation_matrix[0, 1]
-        rsquared = correlation_xy**2
-        fit_comparison_array_sp500[i-1, 4] = correlation_xy**2 # add R^2 value to array
+        correlation_matrix = np.corrcoef(x_values, y_values) # create correlation matrix
+        correlation_xy = correlation_matrix[0, 1] # select correlation between x and y values
+        fit_comparison_array_sp500[i-1, 4] = correlation_xy**2 # compute and add R^2 value to fit comparison array
         j = j + 0.01
 
     print(f'Slope for best fit SP500: {fit_comparison_array_sp500[np.argmax(fit_comparison_array_sp500[:,4]), 3]}')
@@ -165,10 +164,9 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
             fit_comparison_array_gaus[i-1, 0] = x_values[0] # starting x_value for fit
             fit_comparison_array_gaus[i-1, 1] = x_values[-1] # final x_value for fit
             fit_comparison_array_gaus[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1) # fit line
-            correlation_matrix = np.corrcoef(x_values, y_values)
-            correlation_xy = correlation_matrix[0, 1]
-            rsquared = correlation_xy**2
-            fit_comparison_array_gaus[i-1, 4] = correlation_xy**2 # add R^2 value to array
+            correlation_matrix = np.corrcoef(x_values, y_values) # create correlation matrix
+            correlation_xy = correlation_matrix[0, 1] # select correlation between x and y values
+            fit_comparison_array_gaus[i-1, 4] = correlation_xy**2 # compute and add R^2 value to array fit comparison array
             j = j + 0.01
 
         print(f'Slope for best fit Gaus: {fit_comparison_array_gaus[np.argmax(fit_comparison_array_gaus[:,4]), 3]}')
@@ -295,10 +293,9 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
                                 fit_comparison_array[i-1, 0] = x_values[0] # starting x_value for fit
                                 fit_comparison_array[i-1, 1] = x_values[-1] # final x_value for fit
                                 fit_comparison_array[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1) # fit line
-                                correlation_matrix = np.corrcoef(x_values, y_values)
-                                correlation_xy = correlation_matrix[0,1]
-                                rsquared = correlation_xy**2
-                                fit_comparison_array[i-1, 4] = correlation_xy**2 # add R^2 value to array
+                                correlation_matrix = np.corrcoef(x_values, y_values) # create correlation matrix
+                                correlation_xy = correlation_matrix[0, 1] # select correlation between x and y values
+                                fit_comparison_array[i-1, 4] = correlation_xy**2 # compute and add R^2 value to array fit comparison array
                                 j = j + 0.01
 
                             print(f'Slope for best fit regular model: {fit_comparison_array[np.argmax(fit_comparison_array[:,4]), 3]}')
@@ -329,10 +326,9 @@ def vis_price_series(N_agents, N_time, C, A, p, garch, garch_n, garch_param, Pa_
                                 fit_comparison_array_herd[i-1, 0] = x_values[0] # starting x_value for fit
                                 fit_comparison_array_herd[i-1, 1] = x_values[-1] # final x_value for fit
                                 fit_comparison_array_herd[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1)  # fit line
-                                correlation_matrix = np.corrcoef(x_values, y_values)
-                                correlation_xy = correlation_matrix[0, 1]
-                                rsquared = correlation_xy**2
-                                fit_comparison_array_herd[i-1, 4] = correlation_xy**2 # add R^2 value to array
+                                correlation_matrix = np.corrcoef(x_values, y_values) # create correlation matrix
+                                correlation_xy = correlation_matrix[0, 1] # select correlation between x and y values
+                                fit_comparison_array_herd[i-1, 4] = correlation_xy**2 # compute and add R^2 value to array fit comparison array
                                 j = j + 0.01
 
                             print(f'Slope for best fit herd model: {fit_comparison_array_herd[np.argmax(fit_comparison_array_herd[:,4]), 3]}')
@@ -580,10 +576,9 @@ def plot_wealth_dist(MarketObj, image_dir=None):
         fit_comparison_array[i-1, 0] = x_values[0]  # starting x_value for fit
         fit_comparison_array[i-1, 1] = x_values[-1]  # final x_value for fit
         fit_comparison_array[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1)  # fit line
-        correlation_matrix = np.corrcoef(x_values, y_values)
-        correlation_xy = correlation_matrix[0, 1]
-        rsquared = correlation_xy**2
-        fit_comparison_array[i-1, 4] = correlation_xy**2  # add R^2 value to array
+        correlation_matrix = np.corrcoef(x_values, y_values) # create correlation matrix
+        correlation_xy = correlation_matrix[0, 1] # select correlation between x and y values
+        fit_comparison_array[i-1, 4] = correlation_xy**2 # compute and add R^2 value to array fit comparison array
 
     best_fit_array[0] = fit_comparison_array[np.nanargmax(fit_comparison_array[:, 4]), 0] # starting x herd
     best_fit_array[1] = fit_comparison_array[np.nanargmax(fit_comparison_array[:, 4]), 1] # final x herd
@@ -660,10 +655,9 @@ def plot_lorenz_curve(objects, N_agents, image_dir=None):
             fit_comparison_array[i-1, 0] = x_values[0]  # starting x_value for fit
             fit_comparison_array[i-1, 1] = x_values[-1]  # final x_value for fit
             fit_comparison_array[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1)  # fit line
-            correlation_matrix = np.corrcoef(x_values, y_values)
-            correlation_xy = correlation_matrix[0, 1]
-            rsquared = correlation_xy**2
-            fit_comparison_array[i-1, 4] = correlation_xy**2  # add R^2 value to array
+            correlation_matrix = np.corrcoef(x_values, y_values) # create correlation matrix
+            correlation_xy = correlation_matrix[0, 1] # select correlation between x and y values
+            fit_comparison_array[i-1, 4] = correlation_xy**2 # compute and add R^2 value to array fit comparison array
 
         best_fit_array[0] = fit_comparison_array[np.nanargmax(fit_comparison_array[:, 4]), 0] # starting x herd
         best_fit_array[1] = fit_comparison_array[np.nanargmax(fit_comparison_array[:, 4]), 1] # final x herd
@@ -747,10 +741,9 @@ def plot_lorenz_curve_Nagents(objects, all_N_agents, image_dir=None):
             fit_comparison_array[i-1, 0] = x_values[0]  # starting x_value for fit
             fit_comparison_array[i-1, 1] = x_values[-1]  # final x_value for fit
             fit_comparison_array[i-1, 2:4] = np.polynomial.polynomial.polyfit(x_values, y_values, deg=1)  # fit line
-            correlation_matrix = np.corrcoef(x_values, y_values)
-            correlation_xy = correlation_matrix[0, 1]
-            rsquared = correlation_xy**2
-            fit_comparison_array[i-1, 4] = correlation_xy**2  # add R^2 value to array
+            correlation_matrix = np.corrcoef(x_values, y_values) # create correlation matrix
+            correlation_xy = correlation_matrix[0, 1] # select correlation between x and y values
+            fit_comparison_array[i-1, 4] = correlation_xy**2 # compute and add R^2 value to array fit comparison array
 
         best_fit_array[0] = fit_comparison_array[np.nanargmax(fit_comparison_array[:, 4]), 0] # starting x herd
         best_fit_array[1] = fit_comparison_array[np.nanargmax(fit_comparison_array[:, 4]), 1] # final x herd
